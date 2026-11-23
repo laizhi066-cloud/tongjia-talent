@@ -5,9 +5,8 @@
  * @returns { themeId: string, isDark: boolean, primaryColor?: string }
  */
 export default defineEventHandler(async (_event) => {
-  const pb = await getAdminPB()
-
   try {
+    const pb = await getAdminPB()
     const record = await pb.collection('configs').getFirstListItem('configKey = "system_theme"', {
       $autoCancel: false,
     })
@@ -20,11 +19,7 @@ export default defineEventHandler(async (_event) => {
       isDark: value.isDark === true,
       primaryColor,
     })
-  } catch (e: unknown) {
-    // 404 = 还没有主题配置，使用默认值
-    if ((e as Record<string, unknown>).status === 404) {
-      return success({ themeId: 'emerald', isDark: false, primaryColor: undefined })
-    }
-    throw createError({ statusCode: 500, message: '获取主题配置失败' })
+  } catch {
+    return success({ themeId: 'emerald', isDark: false, primaryColor: undefined })
   }
 })

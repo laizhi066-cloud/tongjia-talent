@@ -7,6 +7,7 @@ export default withNuxt(
     // 忽略非项目代码
     ignores: [
       '.claude/',
+      'apps/client/',
       'pocketbase/',
       'test_output.mjs',
       '.output/',

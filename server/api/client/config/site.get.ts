@@ -4,8 +4,12 @@
  * @route GET /api/client/config/site
  */
 export default defineEventHandler(async () => {
-  const pb = await getAdminPB()
-  const site = await getSiteConfig(pb)
-  // 门户只读取自己的默认外观；后台亮暗模式是独立的本机偏好。
-  return success(site, '站点配置')
+  try {
+    const pb = await getAdminPB()
+    const site = await getSiteConfig(pb)
+    // 门户只读取自己的默认外观；后台亮暗模式是独立的本机偏好。
+    return success(site, '站点配置')
+  } catch {
+    return success({ ...DEFAULT_SITE_CONFIG }, '站点配置')
+  }
 })

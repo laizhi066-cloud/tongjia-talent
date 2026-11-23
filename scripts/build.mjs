@@ -32,10 +32,10 @@ export function buildRuntimeEnv(root = ROOT, commandEnv = process.env) {
  * @returns {number} 子进程退出码。
  */
 export function runNuxtBuild(root = ROOT, commandEnv = process.env) {
-  const command = IS_WIN ? (process.env.ComSpec || 'cmd.exe') : 'pnpm'
+  const command = IS_WIN ? (process.env.ComSpec || 'cmd.exe') : 'npx'
   const args = IS_WIN
-    ? ['/d', '/s', '/c', 'pnpm', 'exec', 'nuxt', 'build']
-    : ['exec', 'nuxt', 'build']
+    ? ['/d', '/s', '/c', 'npx', 'nuxt', 'build']
+    : ['nuxt', 'build']
   const result = spawnSync(command, args, {
     cwd: root,
     env: buildRuntimeEnv(root, commandEnv),

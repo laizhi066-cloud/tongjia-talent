@@ -15,7 +15,7 @@ const faviconPath = `/${[appBaseUrl, 'favicon.svg'].join('/').replace(/\/+/g, '/
 export default defineNuxtConfig({
   ssr: true,
   compatibilityDate: '2024-11-01',
-  devtools: { enabled: true },
+  devtools: { enabled: false },
 
   typescript: {
     includeWorkspace: true,
@@ -25,7 +25,7 @@ export default defineNuxtConfig({
     },
   },
 
-  devServer: { host: '0.0.0.0' },
+  devServer: { host: '0.0.0.0', port: 3000 },
 
   vite: {
     build: { sourcemap: false },
@@ -38,12 +38,10 @@ export default defineNuxtConfig({
         '@vicons/ionicons5/es/LockClosedOutline',
         '@vicons/ionicons5/es/PersonOutline',
         '@vicons/ionicons5/es/PhonePortraitOutline',
-        // 这些依赖由上传裁剪器、图标注册表和 Nuxt DevTools 在开发期动态发现。
+        // 这些依赖由上传裁剪器、图标注册表在开发期动态发现。
         // 预构建后避免首次访问对应页面时触发整页 reload。
         'lucide-vue-next',
         'vue-advanced-cropper',
-        '@vue/devtools-core',
-        '@vue/devtools-kit',
       ],
     },
     plugins: [tailwindcss() as any],
