@@ -1,11 +1,15 @@
-/** * @description 基础后台管理员邮箱密码登录页面。 * @file
-app/pages/login/index.vue */
+<!--
+/**
+ * @description 基础后台管理员邮箱密码登录页面。
+ * @file app/pages/login/index.vue
+ */
+-->
 <script setup lang="ts">
 import EyeOffOutline from "@vicons/ionicons5/es/EyeOffOutline";
 import EyeOutline from "@vicons/ionicons5/es/EyeOutline";
 import LockClosedOutline from "@vicons/ionicons5/es/LockClosedOutline";
 import AtOutline from "@vicons/ionicons5/es/AtOutline";
-import { shallowRef } from "vue";
+import { shallowRef, watch } from "vue";
 import { NInput, NButton, NIcon, useMessage } from "naive-ui";
 
 definePageMeta({ middleware: "guest", ssr: false });
@@ -19,30 +23,43 @@ const identity = shallowRef("");
 const password = shallowRef("");
 const loading = shallowRef(false);
 const showPassword = shallowRef(false);
+const formError = shallowRef("");
+
+watch([identity, password], () => {
+  if (formError.value) formError.value = "";
+});
 
 /** 基础后台接受管理员账号名或邮箱。 */
-function validateIdentity(identity: string): string | null {
-  if (!identity) return "请输入管理员账号";
-  if (identity.length < 3) return "账号至少需要 3 位";
+function validateIdentity(value: string): string | null {
+  if (!value) return "请输入管理员账号";
+  if (value.length < 3) return "账号至少需要 3 位";
   return null;
 }
 
+function reportFormError(text: string): void {
+  formError.value = text;
+  message.error(text);
+}
+
 async function handleLogin() {
+  if (loading.value) return;
+
   const identityValue = identity.value.trim();
   const err = validateIdentity(identityValue);
   if (err) {
-    message.error(err);
+    reportFormError(err);
     return;
   }
   if (!password.value) {
-    message.error("请输入密码");
+    reportFormError("请输入密码");
     return;
   }
   if (password.value.length < 8) {
-    message.error("密码长度不能少于8位");
+    reportFormError("密码长度不能少于 8 位");
     return;
   }
 
+  formError.value = "";
   loading.value = true;
 
   try {
@@ -59,13 +76,13 @@ async function handleLogin() {
 
     const requestedPath = safeAdminRedirect(route.query.redirect);
     const bootstrap = await useBootstrapApi().fetchBootstrap().then((data) => {
-      useBootstrapCache().setBootstrapCache(data)
-      return data
+      useBootstrapCache().setBootstrapCache(data);
+      return data;
     }).catch(() => null);
-    const target = requestedPath === '/admin' ? getAdminLandingPath(bootstrap) : requestedPath;
+    const target = requestedPath === "/admin" ? getAdminLandingPath(bootstrap) : requestedPath;
     await navigateTo(target);
   } catch (e: any) {
-    message.error(getApiErrorMessage(e, "登录失败，请重试"));
+    reportFormError(getApiErrorMessage(e, "登录失败，请检查账号或网络后重试"));
   } finally {
     loading.value = false;
   }
@@ -75,50 +92,59 @@ async function handleLogin() {
 <template>
   <ClientOnly>
     <AuthCard title="欢迎回来" subtitle="登录你的账户">
-      <form class="auth-form" @submit.prevent="handleLogin">
+      <form class="auth-form" novalidate @submit.prevent="handleLogin">
+        <div
+          v-if="formError"
+          class="auth-alert"
+          role="alert"
+          aria-live="assertive"
+        >
+          {{ formError }}
+        </div>
+
         <div class="auth-field">
-          <div class="auth-label">账号</div>
-          <div class="auth-input-wrap">
-            <n-icon :component="AtOutline" class="auth-input-icon" />
-            <n-input
-              v-model:value="identity"
-              class="auth-input"
-              size="large"
-              placeholder="账号或邮箱"
-              style="padding-left: 36px"
-              autocomplete="username"
-            />
-          </div>
+          <label class="auth-label" for="login-identity">账号</label>
+          <n-input
+            v-model:value="identity"
+            class="auth-input"
+            size="large"
+            placeholder="账号或邮箱"
+            :input-props="{ id: 'login-identity', autocomplete: 'username' }"
+          >
+            <template #prefix>
+              <n-icon :component="AtOutline" class="auth-input-icon" />
+            </template>
+          </n-input>
           <div class="auth-help">支持管理员账号名或邮箱登录，需已分配后台角色</div>
         </div>
 
         <div class="auth-field">
-          <div class="auth-label">密码</div>
-          <div class="auth-input-wrap">
-            <n-icon :component="LockClosedOutline" class="auth-input-icon" />
-            <n-input
-              v-model:value="password"
-              class="auth-input"
-              size="large"
-              :type="showPassword ? 'text' : 'password'"
-              placeholder="输入密码（至少8位）"
-              autocomplete="current-password"
-              style="padding-left: 36px"
-            >
-              <template #suffix>
-                <button
-                  class="auth-password-toggle"
-                  type="button"
-                  :aria-label="showPassword ? '隐藏密码' : '显示密码'"
-                  @click="showPassword = !showPassword"
-                >
-                  <n-icon
-                    :component="showPassword ? EyeOffOutline : EyeOutline"
-                  />
-                </button>
-              </template>
-            </n-input>
-          </div>
+          <label class="auth-label" for="login-password">密码</label>
+          <n-input
+            v-model:value="password"
+            class="auth-input"
+            size="large"
+            :type="showPassword ? 'text' : 'password'"
+            placeholder="输入密码（至少 8 位）"
+            :input-props="{ id: 'login-password', autocomplete: 'current-password' }"
+          >
+            <template #prefix>
+              <n-icon :component="LockClosedOutline" class="auth-input-icon" />
+            </template>
+            <template #suffix>
+              <button
+                class="auth-password-toggle"
+                type="button"
+                :aria-label="showPassword ? '隐藏密码' : '显示密码'"
+                :aria-pressed="showPassword"
+                @click="showPassword = !showPassword"
+              >
+                <n-icon
+                  :component="showPassword ? EyeOffOutline : EyeOutline"
+                />
+              </button>
+            </template>
+          </n-input>
         </div>
 
         <n-button
@@ -126,6 +152,7 @@ async function handleLogin() {
           type="primary"
           attr-type="submit"
           :loading="loading"
+          :disabled="loading"
         >
           {{ loading ? "登录中..." : "登录" }}
         </n-button>
@@ -150,25 +177,7 @@ async function handleLogin() {
   </ClientOnly>
 </template>
 
-<style>
-/* 关键内联 CSS — 防止刷新闪烁 */
-.auth-wrapper {
-  background: var(--background);
-}
-.auth-card {
-  background: var(--card) !important;
-}
-.auth-logo {
-  background: var(--primary);
-  color: var(--primary-foreground);
-}
-.auth-site-name {
-  color: var(--primary);
-}
-.auth-link {
-  color: var(--primary);
-}
-
+<style scoped>
 .login-fallback {
   display: flex;
   min-height: 100vh;
@@ -176,17 +185,20 @@ async function handleLogin() {
   justify-content: center;
   background: var(--background);
 }
+
 .login-fallback__logo-image {
   display: block;
   width: 52px;
   height: 52px;
   border-radius: 12px;
 }
+
 .login-fallback__brand {
   color: var(--primary);
   font-size: 14px;
   font-weight: 600;
 }
+
 .login-fallback__text {
   margin-top: 8px;
   color: var(--muted-foreground);
@@ -196,40 +208,42 @@ async function handleLogin() {
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 20px;
+}
+
+.auth-alert {
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--destructive, #dc2626) 35%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--destructive, #dc2626) 8%, var(--card));
+  color: var(--destructive, #dc2626);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .auth-field {
   display: grid;
-  gap: 9px;
+  gap: 8px;
 }
 
 .auth-label {
   color: var(--foreground);
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.3;
+  cursor: pointer;
 }
 
 .auth-help {
   color: var(--muted-foreground);
   font-size: 12px;
-  line-height: 1.4;
-}
-
-.auth-input-wrap {
-  position: relative;
+  line-height: 1.45;
 }
 
 .auth-input-icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  z-index: 1;
-  color: color-mix(in srgb, var(--primary) 50%, var(--muted-foreground));
+  margin-right: 4px;
+  color: color-mix(in srgb, var(--primary) 55%, var(--muted-foreground));
   font-size: 17px;
-  pointer-events: none;
-  transform: translateY(-50%);
 }
 
 .auth-input {
@@ -273,7 +287,7 @@ async function handleLogin() {
   margin: -9px -9px -9px 0;
   color: var(--muted-foreground);
   cursor: pointer;
-  opacity: 0.72;
+  opacity: 0.78;
   transition:
     color 180ms ease,
     opacity 180ms ease;
@@ -286,7 +300,7 @@ async function handleLogin() {
 
 .auth-password-toggle:focus-visible {
   border-radius: 8px;
-  outline: 2px solid var(--ring);
+  outline: 2px solid var(--ring, var(--primary));
   outline-offset: -2px;
 }
 

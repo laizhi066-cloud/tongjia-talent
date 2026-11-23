@@ -17,11 +17,14 @@ export default defineNuxtPlugin({
     const router = useRouter()
     const originalFetch = globalThis.$fetch
 
+    let handlingUnauthorized = false
+
     globalThis.$fetch = ((url: string, options?: Record<string, unknown>) => {
       const requestOptions: Record<string, unknown> = { ...(options ?? {}) }
       const onResponseError = requestOptions.onResponseError as ((context: ResponseErrorContext) => void) | undefined
-      const suppressErrorToast = requestOptions.suppressErrorToast === true
+      const suppressErrorToast = requestOptions.suppressErrorToast === true || requestOptions.suppressToast === true
       delete requestOptions.suppressErrorToast
+      delete requestOptions.suppressToast
 
       if (session.token.value) {
         requestOptions.headers = {
@@ -37,9 +40,19 @@ export default defineNuxtPlugin({
           if (context.response?.status === 401) {
             session.clear()
             useAuthState().setUnauthenticated()
-            ;(window as { $message?: { warning(message: string): void } }).$message?.warning('登录已过期，请重新登录')
-            const redirect = router.currentRoute.value.fullPath
-            if (router.currentRoute.value.path !== '/login') void router.push({ path: '/login', query: { redirect } })
+            useBootstrapCache().clearBootstrapCache()
+            usePermissionStore().reset()
+            if (!handlingUnauthorized) {
+              handlingUnauthorized = true
+              ;(window as { $message?: { warning(message: string): void } }).$message?.warning('登录已过期，请重新登录')
+              const redirect = router.currentRoute.value.fullPath
+              const nav = router.currentRoute.value.path !== '/login'
+                ? router.push({ path: '/login', query: { redirect } })
+                : Promise.resolve()
+              void Promise.resolve(nav).finally(() => {
+                setTimeout(() => { handlingUnauthorized = false }, 500)
+              })
+            }
             return
           }
 

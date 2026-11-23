@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
     const codes = new Set<string>();
     for (const ur of user.roles) {
       for (const rm of ur.role.menus) {
-        if (rm.menu.permissionCode) codes.add(rm.menu.permissionCode);
+        if (rm.menu?.permissionCode) codes.add(rm.menu.permissionCode);
       }
     }
     permissions = Array.from(codes);

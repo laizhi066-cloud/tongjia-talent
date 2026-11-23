@@ -3,6 +3,7 @@
  * 导出全局 confirmEvent 状态，供 AppConfirm 组件消费
  * @file app/composables/useConfirm.ts
  */
+import { ref } from 'vue'
 
 export interface ConfirmOptions {
   title?: string
@@ -28,12 +29,21 @@ export const confirmEvent = ref<ConfirmEvent>({
 
 export function useConfirm() {
   function confirm(options: ConfirmOptions): Promise<boolean> {
+    if (confirmEvent.value.visible) {
+      confirmEvent.value.onCancel()
+    }
     return new Promise((resolve) => {
+      let settled = false
+      const settle = (value: boolean) => {
+        if (settled) return
+        settled = true
+        resolve(value)
+      }
       confirmEvent.value = {
         visible: true,
         options: { title: '确认操作', confirmText: '确认', cancelText: '取消', ...options },
-        onConfirm: () => resolve(true),
-        onCancel: () => resolve(false),
+        onConfirm: () => settle(true),
+        onCancel: () => settle(false),
       }
     })
   }

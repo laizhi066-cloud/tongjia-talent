@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
   const ids = rows.map((item) => item.id)
   if (ids.length > 0) {
     const allRoles = await pb.collection('user_roles').getFullList({
-      filter: ids.map((id) => `roleId = "${id}"`).join(' || '),
+      filter: ids.map((id) => `roleId = "${escapeFilterValue(id)}"`).join(' || '),
       fields: 'roleId',
       $autoCancel: false,
     })

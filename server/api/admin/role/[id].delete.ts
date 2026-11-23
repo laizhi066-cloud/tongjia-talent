@@ -16,9 +16,11 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 404, message: '角色不存在' })
     await requireSuperForProtectedRoleIds(event, pb, id ? [id] : [])
 
+    const safeRoleId = escapeFilterValue(role.id)
+
     // 该角色下存在用户时不允许删除（避免无声剥权）
     const userRoleBound = await pb.collection('user_roles').getList(1, 1, {
-      filter: `roleId = "${id}"`,
+      filter: `roleId = "${safeRoleId}"`,
       $autoCancel: false,
     })
     if (userRoleBound.totalItems > 0) {
@@ -27,15 +29,15 @@ export default defineEventHandler(async (event) => {
 
     // 清理关联记录（role_menus, role_depts）
     const [roleMenus, roleDepts] = await Promise.all([
-      pb.collection('role_menus').getFullList({ filter: `roleId = "${id}"`, $autoCancel: false }),
-      pb.collection('role_depts').getFullList({ filter: `roleId = "${id}"`, $autoCancel: false }),
+      pb.collection('role_menus').getFullList({ filter: `roleId = "${safeRoleId}"`, $autoCancel: false }),
+      pb.collection('role_depts').getFullList({ filter: `roleId = "${safeRoleId}"`, $autoCancel: false }),
     ])
     await Promise.allSettled([
       ...roleMenus.map(r => pb.collection('role_menus').delete(r.id)),
       ...roleDepts.map(d => pb.collection('role_depts').delete(d.id)),
     ])
 
-    await pb.collection('roles').delete(id!)
+    await pb.collection('roles').delete(role.id)
     return success(null, '删除成功')
   })
 })

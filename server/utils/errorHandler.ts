@@ -21,7 +21,7 @@ function isH3Error(error: unknown): boolean {
   return !!error && typeof error === 'object' && typeof (error as Record<string, unknown>).statusCode === 'number'
 }
 
-export default function (error: unknown, event: H3Event) {
+export default async function (error: unknown, event: H3Event) {
   let statusCode = 500
   let message = '服务器内部错误'
   let data: unknown
@@ -68,10 +68,37 @@ export default function (error: unknown, event: H3Event) {
     })()
   }
 
-  // 生产环境隐藏 500 错误的内部详情
-  if (statusCode === 500 && process.env.NODE_ENV === 'production') {
+  // 生产环境隐藏非显式 H3Error 的 5xx 内部详情，避免暴露底层实现或堆栈信息
+  if (statusCode >= 500 && !isH3Error(error) && process.env.NODE_ENV === 'production') {
     message = '服务器内部错误'
   }
+
+  if (event.node.res.writableEnded) return
+
+  // 浏览器直接访问非 API 页面（如未知路由 404）时，交由 Nuxt 渲染 app/error.vue 而非输出裸 JSON
+  const accept = String(getHeader(event, 'accept') || '')
+  const isApiOrInternal = reqPath.startsWith('/api/') || reqPath.startsWith('/__nuxt_error')
+  if (!isApiOrInternal && accept.includes('text/html')) {
+    try {
+      const html = await event.$fetch<string>('/__nuxt_error', {
+        query: {
+          url: reqPath,
+          statusCode: String(statusCode),
+          statusMessage: message,
+          message,
+        },
+      })
+      if (event.node.res.writableEnded) return
+      setResponseHeader(event, 'Content-Type', 'text/html; charset=utf-8')
+      event.node.res.statusCode = statusCode
+      event.node.res.end(html)
+      return
+    } catch {
+      // HTML 错误页渲染异常时回退到 JSON 输出，避免二次异常
+    }
+  }
+
+  if (event.node.res.writableEnded) return
 
   setResponseHeader(event, 'Content-Type', 'application/json; charset=utf-8')
   event.node.res.statusCode = statusCode

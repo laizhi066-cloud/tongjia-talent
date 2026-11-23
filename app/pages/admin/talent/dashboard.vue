@@ -4,32 +4,24 @@
 -->
 <script setup lang="ts">
 import { NButton, NEmpty, NResult, NSpin, NTag } from "naive-ui";
+import type { TalentDashboardData } from "~/composables/api/useTalentDashboardApi";
 
 definePageMeta({ layout: "admin", middleware: ["auth", "permission-guard"] });
 
-interface DashboardData {
-  parents: { total: number; boundChildren: number };
-  children: { found: number; pending: number; total: number };
-  reports: { published: number; pending: number; withdrawn: number; total: number };
-  pending: { total: number; pendingReports: number; pendingChildren: number };
-  recent: Array<{
-    id: string;
-    time: string;
-    operator: string;
-    title: string;
-    status: number;
-  }>;
-}
+const dashboardApi = useTalentDashboardApi();
+const { hasPermission } = usePermission();
 
-const data = ref<DashboardData | null>(null);
+const data = ref<TalentDashboardData | null>(null);
 const loading = ref(false);
 const error = ref("");
+const canViewOperLog = computed(() => hasPermission("system:operlog:list"));
 
 async function load(): Promise<void> {
+  if (loading.value) return;
   loading.value = true;
   error.value = "";
   try {
-    data.value = await useApi<DashboardData>("/api/admin/talent/dashboard");
+    data.value = await dashboardApi.fetchDashboard();
   } catch {
     error.value = "工作台加载失败，请重试";
   } finally {
@@ -41,7 +33,9 @@ function go(path: string): void {
   void navigateTo(path);
 }
 
-void load();
+onMounted(() => {
+  void load();
+});
 </script>
 
 <template>
@@ -51,7 +45,7 @@ void load();
         <h1>工作台</h1>
         <p>一屏看清规模与待处理量；前三张卡可直达对应列表。</p>
       </div>
-      <n-button @click="load">刷新</n-button>
+      <n-button :loading="loading" :disabled="loading" @click="load">刷新</n-button>
     </header>
 
     <n-spin :show="loading">
@@ -75,7 +69,7 @@ void load();
             <span class="metric-foot">待出结果 {{ data.children.pending }} 人</span>
           </button>
 
-          <button type="button" class="metric-card" @click="go('/admin/talent/report')">
+          <button type="button" class="metric-card" @click="go('/admin/talent/reports')">
             <span class="metric-label">已发布报告</span>
             <b>{{ data.reports.published }}</b>
             <span class="metric-foot">
@@ -96,7 +90,14 @@ void load();
         <section class="recent-panel" aria-label="最近操作">
           <header class="recent-head">
             <h2>最近操作</h2>
-            <n-button text type="primary" @click="go('/admin/log/oper-log')">查看全部</n-button>
+            <n-button
+              v-if="canViewOperLog"
+              text
+              type="primary"
+              @click="go('/admin/log/oper-log')"
+            >
+              查看全部
+            </n-button>
           </header>
           <ul v-if="data.recent.length" class="recent-list">
             <li v-for="log in data.recent" :key="log.id">
@@ -137,6 +138,7 @@ h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
   transition: border-color .15s ease, box-shadow .15s ease;
 }
 .metric-card:hover { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 8%, transparent); }
+.metric-card:focus-visible { outline: 2px solid var(--ring, var(--primary)); outline-offset: 2px; }
 .metric-card.is-static { cursor: default; }
 .metric-card.is-static:hover { border-color: var(--border); box-shadow: none; }
 .metric-label { color: var(--muted-foreground, #6c756a); font-size: 13px; }

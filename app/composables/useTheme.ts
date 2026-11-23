@@ -73,6 +73,14 @@ export function useTheme() {
   const themeName = computed(() => currentTheme.value.name)
   const themeLabel = computed(() => isDark.value ? '暗色' : '明亮')
 
+  function safeStorageGet(key: string): string | null {
+    try { return localStorage.getItem(key) } catch { return null }
+  }
+
+  function safeStorageSet(key: string, value: string): void {
+    try { localStorage.setItem(key, value) } catch { /* 隐私模式或受限存储时静默降级 */ }
+  }
+
   /**
    * 应用主题 CSS 变量到 document.documentElement 并持久化到 localStorage
    */
@@ -86,7 +94,7 @@ export function useTheme() {
       const foreground = getReadableForeground(normalizedPrimary)
       vars['--primary'] = normalizedPrimary
       vars['--primary-foreground'] = foreground
-      vars['--sidebar-primary'] = color
+      vars['--sidebar-primary'] = normalizedPrimary
       vars['--sidebar-primary-foreground'] = foreground
     }
     const root = document.documentElement
@@ -99,7 +107,7 @@ export function useTheme() {
       root.classList.remove('dark')
     }
     // 持久化 CSS 变量到 localStorage，供首次渲染前的同步脚本恢复
-    localStorage.setItem(STORAGE_KEY_VARS, JSON.stringify(vars))
+    safeStorageSet(STORAGE_KEY_VARS, JSON.stringify(vars))
     // 同步写入 cookie，供 SSR 首次渲染使用（消除 FOUC）
     document.cookie = `foundation-theme=${themeId}|${dark ? '1' : '0'}; Path=/; Max-Age=31536000; SameSite=Lax`
   }
@@ -117,17 +125,17 @@ export function useTheme() {
 
       // 缓存到 localStorage 作为离线回退
       if (import.meta.client) {
-        localStorage.setItem(STORAGE_KEY_THEME, data.themeId)
-        localStorage.setItem(STORAGE_KEY_DARK, String(data.isDark))
-        localStorage.setItem(SERVER_FETCHED_KEY, 'true')
+        safeStorageSet(STORAGE_KEY_THEME, data.themeId)
+        safeStorageSet(STORAGE_KEY_DARK, String(data.isDark))
+        safeStorageSet(SERVER_FETCHED_KEY, 'true')
         applyTheme(data.themeId, data.isDark, primaryColor.value)
       }
     } catch {
       // 服务器不可用时，使用 localStorage 缓存
       if (import.meta.client) {
-        const localTheme = localStorage.getItem(STORAGE_KEY_THEME)
-        const localDark = localStorage.getItem(STORAGE_KEY_DARK)
-        const wasFetched = localStorage.getItem(SERVER_FETCHED_KEY)
+        const localTheme = safeStorageGet(STORAGE_KEY_THEME)
+        const localDark = safeStorageGet(STORAGE_KEY_DARK)
+        const wasFetched = safeStorageGet(SERVER_FETCHED_KEY)
 
         // 如果之前成功同步过服务器主题，则使用服务器主题
         // 否则使用用户本地的 localStorage 值
@@ -154,7 +162,7 @@ export function useTheme() {
         isDark: dark,
         ...(isValidPrimaryColor(color) ? { primaryColor: color } : {}),
       })
-      localStorage.setItem(SERVER_FETCHED_KEY, 'true')
+      safeStorageSet(SERVER_FETCHED_KEY, 'true')
     } catch {
       if (import.meta.dev) console.warn('[theme] 保存到服务器失败，仅本地生效')
     }
@@ -169,7 +177,7 @@ export function useTheme() {
     if (!import.meta.client) return
 
     applyTheme(themeId, isDark.value, primaryColor.value)
-    localStorage.setItem(STORAGE_KEY_THEME, themeId)
+    safeStorageSet(STORAGE_KEY_THEME, themeId)
 
     await saveThemeToServer(themeId, isDark.value, primaryColor.value)
   }
@@ -183,7 +191,7 @@ export function useTheme() {
     if (!import.meta.client) return
 
     applyTheme(currentThemeId.value, next)
-    localStorage.setItem(STORAGE_KEY_DARK, String(next))
+    safeStorageSet(STORAGE_KEY_DARK, String(next))
 
     await saveThemeToServer(currentThemeId.value, next)
   }
@@ -196,7 +204,7 @@ export function useTheme() {
     if (!import.meta.client) return
 
     applyTheme(currentThemeId.value, dark)
-    localStorage.setItem(STORAGE_KEY_DARK, String(dark))
+    safeStorageSet(STORAGE_KEY_DARK, String(dark))
 
     await saveThemeToServer(currentThemeId.value, dark)
   }

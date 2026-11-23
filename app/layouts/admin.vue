@@ -44,6 +44,8 @@ watch([themeDark, currentThemeId, primaryColor], () => {
   naiveOverrides.value = buildNaiveOverrides(currentThemeId.value, themeDark.value, primaryColor.value)
 })
 
+let disposed = false
+
 onMounted(async () => {
   isMounted.value = true
   if (authState.value === 'pending') {
@@ -51,7 +53,11 @@ onMounted(async () => {
     else setUnauthenticated()
   }
 
+  if (authState.value !== 'authenticated') return
+
   await fetchPermissions()
+  if (disposed || authState.value !== 'authenticated') return
+
   if (hasPermission('system:dict:list')) {
     void preloadDicts([
       'sys_normal_disable',
@@ -66,13 +72,20 @@ onMounted(async () => {
   }
 
   // 在线列表仍由 RBAC 保护；每个后台账户只能维护自己的会话，因此心跳不能依赖查看全局会话的权限。
-  const heartbeat = () => useMonitorApi().heartbeat().catch(() => undefined)
+  const heartbeat = () => {
+    if (disposed || authState.value !== 'authenticated') return
+    void useMonitorApi().heartbeat().catch(() => undefined)
+  }
   heartbeat()
   heartbeatInterval.value = setInterval(heartbeat, 5 * 60 * 1000)
 })
 
 onUnmounted(() => {
-  if (heartbeatInterval.value) clearInterval(heartbeatInterval.value)
+  disposed = true
+  if (heartbeatInterval.value) {
+    clearInterval(heartbeatInterval.value)
+    heartbeatInterval.value = null
+  }
 })
 
 provide('sidebar-collapsed', collapsed)

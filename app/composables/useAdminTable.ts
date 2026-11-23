@@ -127,15 +127,27 @@ export function useAdminTable<T = Record<string, unknown>>(
   const error = ref('')
   const checkedRowIds = ref<(string | number)[]>([])
 
+  let requestSeq = 0
+
   async function fetchData() {
+    const seq = ++requestSeq
     loading.value = true
     error.value = ''
     try {
-      data.value = await fetchFn({ page: data.value.page, pageSize: data.value.pageSize })
+      const next = await fetchFn({ page: data.value.page, pageSize: data.value.pageSize })
+      if (seq !== requestSeq) return
+      // 删除当前页最后一条后若仍有历史页数据，自动回退一页，避免停留在空白页。
+      if (next.rows.length === 0 && data.value.page > 1 && next.total > 0) {
+        data.value.page = Math.max(1, Math.ceil(next.total / data.value.pageSize))
+        await fetchData()
+        return
+      }
+      data.value = next
     } catch {
+      if (seq !== requestSeq) return
       error.value = '列表数据加载失败，请检查网络或服务状态后重试。'
     } finally {
-      loading.value = false
+      if (seq === requestSeq) loading.value = false
     }
   }
 
@@ -175,7 +187,7 @@ export function useAdminTable<T = Record<string, unknown>>(
     if (checkedRowIds.value.length === data.value.rows.length) {
       checkedRowIds.value = []
     } else {
-      checkedRowIds.value = data.value.rows.map((r) => (r as any).id)
+      checkedRowIds.value = data.value.rows.map((r) => (r as any).id).filter((id) => id !== undefined && id !== null)
     }
   }
 
@@ -194,22 +206,46 @@ export function useAdminTable<T = Record<string, unknown>>(
   ) {
     if (!checkedRowIds.value.length) return
     const ok = await new Promise<boolean>((resolve) => {
-      dialog.warning({ title: '确认批量删除', content: `确定删除选中的 ${checkedRowIds.value.length} 条${label}吗？`, positiveText: '确认', negativeText: '取消', onPositiveClick: () => resolve(true), onNegativeClick: () => resolve(false) })
+      let settled = false
+      const settle = (value: boolean) => {
+        if (settled) return
+        settled = true
+        resolve(value)
+      }
+      dialog.warning({
+        title: '确认批量删除',
+        content: `确定删除选中的 ${checkedRowIds.value.length} 条${label}吗？`,
+        positiveText: '确认',
+        negativeText: '取消',
+        onPositiveClick: () => settle(true),
+        onNegativeClick: () => settle(false),
+        onClose: () => settle(false),
+        onMaskClick: () => settle(false),
+      })
     })
     if (!ok) return
-    try {
-      await Promise.all(
-        checkedRowIds.value.map((id) => {
-          const url = typeof deleteUrl === 'function' ? deleteUrl(id) : deleteUrl
-          return useApi(url, { method: 'DELETE', suppressToast: true })
-        }),
-      )
+    const targetIds = [...checkedRowIds.value]
+    const results = await Promise.allSettled(
+      targetIds.map((id) => {
+        const url = typeof deleteUrl === 'function' ? deleteUrl(id) : deleteUrl
+        return useApi(url, { method: 'DELETE', suppressToast: true })
+      }),
+    )
+    const failedIds: (string | number)[] = []
+    let successCount = 0
+    results.forEach((res, idx) => {
+      if (res.status === 'fulfilled') successCount++
+      else failedIds.push(targetIds[idx]!)
+    })
+    checkedRowIds.value = failedIds
+    if (failedIds.length === 0) {
       message.success('批量删除成功')
-      checkedRowIds.value = []
-      fetchData()
-    } catch {
+    } else if (successCount > 0) {
+      message.warning(`已删除 ${successCount} 条，${failedIds.length} 条删除失败`)
+    } else {
       message.error('批量删除失败')
     }
+    if (successCount > 0) await fetchData()
   }
 
   return {

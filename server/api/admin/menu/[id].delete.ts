@@ -10,10 +10,14 @@ export default defineEventHandler(async (event) => {
     const id = getRouterParam(event, 'id')
     const pb = await getAdminPB()
     if (!id) throw createError({ statusCode: 400, message: '缺少菜单ID' })
-    // 递归删除子菜单并清理 role_menus 关联
+    // 递归删除子菜单并清理 role_menus 关联（记录 visited 防止异常环路导致无限递归）
+    const visited = new Set<string>()
     async function deleteChildren(parentId: string) {
+      if (visited.has(parentId)) return
+      visited.add(parentId)
+      const safeParentId = escapeFilterValue(parentId)
       const children = await pb.collection('menus').getFullList({
-        filter: `parentId = "${parentId}"`,
+        filter: `parentId = "${safeParentId}"`,
         $autoCancel: false,
       })
       for (const child of children) {
@@ -21,7 +25,7 @@ export default defineEventHandler(async (event) => {
       }
       // 清理引用该菜单的 role_menus 记录
       const roleMenus = await pb.collection('role_menus').getFullList({
-        filter: `menuId = "${parentId}"`,
+        filter: `menuId = "${safeParentId}"`,
         $autoCancel: false,
       })
       await Promise.allSettled(

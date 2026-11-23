@@ -15,10 +15,14 @@ interface SessionData {
 
 const STORAGE_KEY = 'pocketbase_auth'
 
-/** 读取 JWT 过期时间；非 JWT 令牌由服务端 401 兜底。 */
-function jwtExp(token: string): number {
+/** 读取 JWT 过期时间（兼容 Base64URL 编码）；非 JWT 令牌由服务端 401 兜底。 */
+export function jwtExp(token: string): number {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1] ?? '')) as { exp?: unknown }
+    const segment = token.split('.')[1]
+    if (!segment) return 0
+    const base64 = segment.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=')
+    const payload = JSON.parse(atob(padded)) as { exp?: unknown }
     return typeof payload.exp === 'number' ? payload.exp : 0
   } catch {
     return 0

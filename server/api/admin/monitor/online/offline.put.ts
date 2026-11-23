@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
     const pb = await getAdminPB()
 
     const sessions = await pb.collection('user_sessions').getList(1, 1, {
-      filter: `userId = "${user.id}" && status = "online"`,
+      filter: `userId = "${escapeFilterValue(String(user.id))}" && status = "online"`,
       sort: '-lastActivityTime',
       $autoCancel: false,
     })

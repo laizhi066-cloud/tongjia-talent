@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
 
     // 复用已有在线会话，避免同一用户产生多条记录
     const existing = await pb.collection('user_sessions').getList(1, 1, {
-      filter: `userId = "${user.id}" && status = "online"`,
+      filter: `userId = "${escapeFilterValue(user.id)}" && status = "online"`,
       sort: '-lastActivityTime',
       $autoCancel: false,
     })

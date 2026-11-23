@@ -5,7 +5,7 @@
  * @route POST /api/admin/talent/members
  */
 import type { TalentChildRecord } from "~~/shared/types/talent-member";
-import { getAdminPB } from "~~/server/utils/pocketbase-client";
+import { escapeFilterValue, getAdminPB } from "~~/server/utils/pocketbase-client";
 import { requirePermission } from "~~/server/utils/permission";
 import { success } from "~~/server/utils/response";
 import {
@@ -67,7 +67,7 @@ export default defineEventHandler(async (event) => {
       const freshChildren = await pb
         .collection("talent_children")
         .getFullList<TalentChildRecord>({
-          filter: `parentId = "${parent.id}" && status = "1"`,
+          filter: `parentId = "${escapeFilterValue(parent.id)}" && status = "1"`,
           sort: "created",
           $autoCancel: false,
         });

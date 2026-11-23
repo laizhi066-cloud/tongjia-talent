@@ -120,13 +120,15 @@ export function useMenuTree() {
     loading.value = true
     try {
       const { getBootstrapCache, setBootstrapCache } = useBootstrapCache()
-  // bootstrap 已按当前用户的角色筛选菜单与权限；侧边栏不能再调用菜单管理接口，
+      // bootstrap 已按当前用户的角色筛选菜单与权限；侧边栏不能再调用菜单管理接口，
       // 否则只有业务页面权限的只读角色会因为缺少 system:menu:list 收到 403。
       const cached = getBootstrapCache()
       const bootstrap = cached ?? await useBootstrapApi().fetchBootstrap()
       if (!cached) setBootstrapCache(bootstrap)
       menuOptions.value = normalizeNodes(bootstrap.menuTree)
       expandedKeys.value = findParentKeys(menuOptions.value, route.path)
+    } catch {
+      menuOptions.value = []
     } finally {
       loading.value = false
     }

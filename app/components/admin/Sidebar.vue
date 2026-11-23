@@ -1,7 +1,9 @@
+<!--
 /**
  * @description 管理后台侧边栏 — 可折叠 NMenu，从 Bootstrap API 获取菜单树 + 权限
  * @file app/components/admin/Sidebar.vue
  */
+-->
 <script setup lang="ts">
 import { NMenu, NIcon, NEmpty, NSkeleton } from 'naive-ui'
 import { BanOutline } from '@vicons/ionicons5'
@@ -9,9 +11,14 @@ import { getAdminLandingPath } from '~/utils/admin-landing'
 
 const collapsed = inject('sidebar-collapsed') as Ref<boolean>
 // 后台品牌：优先读站点配置 adminName（运行时可改），回退构建期 env（跨组件共享）
-const { logoText, logoIcon, loadBrand } = useAdminBrand()
+const { logoText, logoIcon, logoMark, loadBrand } = useAdminBrand()
+const logoMarkError = ref(false)
 const { getBootstrapCache } = useBootstrapCache()
 const adminHomePath = computed(() => getAdminLandingPath(getBootstrapCache()))
+
+watch(logoMark, () => {
+  logoMarkError.value = false
+})
 
 onMounted(loadBrand)
 
@@ -40,13 +47,23 @@ function onMenuSelect(key: string) {
   >
     <!-- 头部：Logo + 标题（点击回首页）。NuxtLink 自动带 baseURL（生产在 nginx 子路径），避免硬编码 /admin 跳到域名根 404 -->
     <NuxtLink :to="adminHomePath" class="flex items-center justify-center h-16 gap-2.5 px-4 shrink-0 no-underline cursor-pointer" :style="{ borderBottom: '1px solid var(--sidebar-border)' }">
+      <img
+        v-if="logoMark && !logoMarkError"
+        :src="logoMark"
+        :alt="logoText"
+        class="w-8.5 h-8.5 rounded-2.5 shrink-0 object-contain"
+        width="34"
+        height="34"
+        @error="logoMarkError = true"
+      >
       <div
+        v-else
         class="flex items-center justify-center w-8.5 h-8.5 rounded-2.5 shrink-0 font-bold text-base"
         :style="{ background: 'var(--sidebar-primary)', boxShadow: '0 2px 6px color-mix(in srgb, var(--sidebar-primary) 30%, transparent)', color: 'var(--sidebar-primary-foreground)' }"
       >{{ logoIcon }}</div>
       <span
         v-if="!collapsed"
-        class="text-lg font-bold tracking-wide whitespace-nowrap"
+        class="text-base font-bold tracking-wide truncate"
         :style="{ color: 'var(--sidebar-foreground)' }"
       >{{ logoText }}</span>
     </NuxtLink>

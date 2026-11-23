@@ -14,7 +14,8 @@ const toggleSidebar = inject<() => void>('toggle-sidebar', () => undefined)
 const toggleMobileMenu = inject<() => void>('toggle-mobile-menu', () => undefined)
 const { isBelowDesktop } = useResponsive()
 const { isDark, toggleDark } = useTheme()
-const { logoText, logoIcon, loadBrand } = useAdminBrand()
+const { logoText, logoIcon, logoMark, loadBrand } = useAdminBrand()
+const logoMarkError = ref(false)
 const { roles, fetchPermissions } = usePermission()
 const isFullscreen = ref(false)
 const isSuper = computed(() => roles.value.includes('superadmin'))
@@ -23,12 +24,18 @@ const canUpdateTheme = isSuper
 const { getBootstrapCache } = useBootstrapCache()
 const adminHomePath = computed(() => getAdminLandingPath(getBootstrapCache()))
 const route = useRoute()
+
+watch(logoMark, () => {
+  logoMarkError.value = false
+})
+
 const currentMenuLabel = computed(() => {
   const cache = getBootstrapCache() as { menuTree?: Array<{ label?: string; path?: string; children?: Array<{ path?: string; label?: string }> }> } | null
   for (const node of cache?.menuTree || []) {
     if (node.path === route.path) return node.label || ''
-    if ((node.children || []).some((child) => child.path === route.path))
-      return node.label || ''
+    const matchedChild = (node.children || []).find((child) => child.path === route.path)
+    if (matchedChild)
+      return matchedChild.label || node.label || ''
   }
   return ''
 })
@@ -41,9 +48,9 @@ const fullscreenLabel = computed(() => isFullscreen.value ? '退出全屏' : '�
 
 function toggleFullscreen(): void {
   if (document.fullscreenElement) {
-    document.exitFullscreen()
+    void document.exitFullscreen?.().catch(() => undefined)
   } else {
-    document.documentElement.requestFullscreen()
+    void document.documentElement.requestFullscreen?.().catch(() => undefined)
   }
 }
 
@@ -70,7 +77,16 @@ onUnmounted(() => {
       </NButton>
       <span v-if="currentMenuLabel" class="admin-topbar__current">{{ currentMenuLabel }}</span>
       <NuxtLink :to="adminHomePath" class="admin-topbar__brand">
-        <span class="admin-topbar__brand-icon">{{ logoIcon }}</span>
+        <img
+          v-if="logoMark && !logoMarkError"
+          :src="logoMark"
+          :alt="logoText"
+          class="admin-topbar__brand-image"
+          width="30"
+          height="30"
+          @error="logoMarkError = true"
+        >
+        <span v-else class="admin-topbar__brand-icon">{{ logoIcon }}</span>
         <span class="admin-topbar__brand-name">{{ logoText }}</span>
       </NuxtLink>
     </div>
@@ -125,6 +141,7 @@ onUnmounted(() => {
 .admin-topbar__actions { gap: 4px; }
 .admin-topbar__brand { gap: 10px; margin-left: 8px; color: var(--sidebar-foreground); text-decoration: none; }
 .admin-topbar__current { margin-left: 4px; color: var(--foreground); font-size: 14px; font-weight: 600; }
+.admin-topbar__brand-image { display: block; width: 30px; height: 30px; border-radius: 9px; object-fit: contain; }
 .admin-topbar__brand-icon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9px; background: var(--sidebar-primary); color: var(--sidebar-primary-foreground); font-weight: 700; }
 .admin-topbar__brand-name { font-size: 15px; font-weight: 700; }
 

@@ -21,7 +21,9 @@ interface AuthEventContext {
  * 前端在 $fetch 时需附加 Authorization: Bearer <token>
  */
 export async function verifyUserToken(event: H3Event): Promise<Record<string, any>> {
-  const token = getHeader(event, 'authorization')?.replace('Bearer ', '')
+  const authHeader = getHeader(event, 'authorization')?.trim()
+  const match = authHeader?.match(/^Bearer\s+(\S+)$/i)
+  const token = match?.[1]
   if (!token) throw createError({ statusCode: 401, message: '未登录' })
 
   // 每次新建实例，保证并发请求互不影响；始终连接唯一的 POCKETBASE_URL。
@@ -113,7 +115,9 @@ export async function getCurrentUser(event: H3Event): Promise<Record<string, any
     return {
       role: {
         ...role,
-        menus: roleMenuRows.map((rm: RecordModel) => ({ menu: rm.expand?.menuId })),
+        menus: roleMenuRows
+          .filter((rm: RecordModel) => Boolean(rm.expand?.menuId))
+          .map((rm: RecordModel) => ({ menu: rm.expand?.menuId })),
         deptScopes: [],
       },
     }

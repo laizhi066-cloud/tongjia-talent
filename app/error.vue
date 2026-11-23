@@ -6,10 +6,15 @@
  */
 -->
 <script setup lang="ts">
-import { NButton, NResult } from 'naive-ui'
+import { darkTheme, NButton, NConfigProvider, NResult, zhCN } from 'naive-ui'
 import type { NuxtError } from '#app'
+import { buildNaiveOverrides } from '~/config/naive-theme'
 
 const props = defineProps<{ error: NuxtError }>()
+const { isDark, currentThemeId, primaryColor } = useTheme()
+const naiveOverrides = computed(() =>
+  buildNaiveOverrides(currentThemeId.value, isDark.value, primaryColor.value),
+)
 
 const is404 = computed(() => props.error?.statusCode === 404)
 const title = computed(() => (is404.value ? '页面不存在' : '出错了'))
@@ -25,15 +30,19 @@ function goHome() {
 </script>
 
 <template>
-  <div class="error-page">
-    <NResult :status="is404 ? '404' : 'error'" :title="title" :description="desc">
-      <template #footer>
-        <NButton type="primary" @click="goHome">
-          返回会员管理
-        </NButton>
-      </template>
-    </NResult>
-  </div>
+  <NConfigProvider :theme="isDark ? darkTheme : null" :theme-overrides="naiveOverrides" :locale="zhCN">
+    <main class="error-page">
+      <div class="error-card">
+        <NResult :status="is404 ? '404' : 'error'" :title="title" :description="desc">
+          <template #footer>
+            <NButton type="primary" size="large" @click="goHome">
+              返回工作台
+            </NButton>
+          </template>
+        </NResult>
+      </div>
+    </main>
+  </NConfigProvider>
 </template>
 
 <style scoped>
@@ -43,5 +52,17 @@ function goHome() {
   align-items: center;
   justify-content: center;
   padding: 24px;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.error-card {
+  width: 100%;
+  max-width: 460px;
+  padding: 36px 28px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--foreground) 6%, transparent);
 }
 </style>

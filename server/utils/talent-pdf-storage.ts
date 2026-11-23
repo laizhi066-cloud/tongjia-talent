@@ -83,7 +83,7 @@ async function storePocketBaseObject(
 ): Promise<TalentPdfStoredObject> {
   // uploads 以密文落盘，mime 用 octet-stream（内容不是可直接读取的 PDF）。
   const form = new FormData();
-  form.append("file", new File([encrypted], fileName, { type: "application/octet-stream" }));
+  form.append("file", new File([new Uint8Array(encrypted)], fileName, { type: "application/octet-stream" }));
   form.append("filename", fileName);
   form.append("mimeType", "application/octet-stream");
   form.append("size", String(encrypted.byteLength));

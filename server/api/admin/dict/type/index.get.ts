@@ -26,8 +26,10 @@ export default defineEventHandler(async (event) => {
     return success({ rows, total: rows.length, page: 1, pageSize: rows.length })
   }
 
-  const page = Math.max(1, parseInt(String(query.page || '1')))
-  const pageSize = Math.min(100, Math.max(1, parseInt(String(query.pageSize || '10'))))
+  const parsedPage = Number.parseInt(String(query.page || '1'), 10)
+  const parsedPageSize = Number.parseInt(String(query.pageSize || '10'), 10)
+  const page = Number.isFinite(parsedPage) ? Math.max(1, parsedPage) : 1
+  const pageSize = Number.isFinite(parsedPageSize) ? Math.min(100, Math.max(1, parsedPageSize)) : 10
 
   const result = await pb.collection('dict_types').getList(page, pageSize, {
     filter: filter || undefined,
@@ -41,7 +43,7 @@ export default defineEventHandler(async (event) => {
   const countMap = new Map<string, number>()
   if (ids.length > 0) {
     const allData = await pb.collection('dict_data').getFullList({
-      filter: ids.map((id) => `dictTypeId = "${id}"`).join(' || '),
+      filter: ids.map((id) => `dictTypeId = "${escapeFilterValue(id)}"`).join(' || '),
       fields: 'dictTypeId',
       $autoCancel: false,
     })

@@ -21,21 +21,30 @@ watch([themeDark, currentThemeId, primaryColor], () => {
 let confirmed = false
 const isLoading = ref(false)
 
+watch(() => confirmEvent.value.visible, (visible) => {
+  if (visible) confirmed = false
+})
+
 const isOpen = computed({
   get: () => confirmEvent.value.visible,
   set: (v) => {
     confirmEvent.value.visible = v
     if (!v && !confirmed) confirmEvent.value.onCancel()
+    if (!v) confirmed = false
   },
 })
 
 async function handleConfirm() {
   confirmed = true
   isLoading.value = true
-  await nextTick()
-  confirmEvent.value.onConfirm()
-  confirmEvent.value.visible = false
-  isLoading.value = false
+  try {
+    await nextTick()
+    confirmEvent.value.onConfirm()
+    confirmEvent.value.visible = false
+  } finally {
+    isLoading.value = false
+    confirmed = false
+  }
 }
 </script>
 
