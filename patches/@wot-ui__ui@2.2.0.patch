@@ -1,0 +1,120 @@
+diff --git a/common/util.ts b/common/util.ts
+index cd5e94e7579a113ed45689138f537c34898721e1..e12a356d87e28521c4309f63ed2267743ee62ca9 100644
+--- a/common/util.ts
++++ b/common/util.ts
+@@ -398,7 +398,7 @@ export function isBase64Image(url: string) {
+  * @param {object | object[]} styles 外部传入的样式对象或数组
+  * @returns {string} 格式化后的 CSS 样式字符串
+  */
+-export function objToStyle(styles: Record<string, any> | Record<string, any>[]): string {
++export function objToStyle(styles: string | Record<string, any> | Array<string | Record<string, any>>): string {
+   // 如果 styles 是数组类型
+   if (isArray(styles)) {
+     // 使用过滤函数去除空值和 null 值的元素
+diff --git a/components/wd-button/wd-button.vue b/components/wd-button/wd-button.vue
+index 8b2610d90c8ebe78e2726179bb83f2b688ec0d96..726034dca653727223e0064a0d9ba127cb1ca8a6 100644
+--- a/components/wd-button/wd-button.vue
++++ b/components/wd-button/wd-button.vue
+@@ -122,7 +122,7 @@ const customLoadingProps = computed(() => {
+  * 开放能力类型
+  */
+ const openTypeValue = computed(() => {
+-  return props.disabled || props.loading ? undefined : props.openType
++  return (props.disabled || props.loading ? undefined : props.openType) as any
+ })
+ 
+ /**
+diff --git a/components/wd-fab/wd-fab.vue b/components/wd-fab/wd-fab.vue
+index 5a703d7c3e456e927fe03dceaaafe8c49838612d..878e7fbebf7cc3e1f1d3131de1416e23f910e358 100644
+--- a/components/wd-fab/wd-fab.vue
++++ b/components/wd-fab/wd-fab.vue
+@@ -54,7 +54,7 @@ import { type CSSProperties, computed, ref, watch, inject, getCurrentInstance, o
+ import { getRect, getSystemInfo, isDef, isH5, objToStyle } from '../../common/util'
+ import { type Queue, queueKey } from '../../composables/useQueue'
+ import { closeOther, pushToQueue, removeFromQueue } from '../../common/clickoutside'
+-import { fabProps, type FabExpose } from './types'
++import { fabProps, type FabExpose, type FabGap } from './types'
+ import { reactive } from 'vue'
+ import { useRaf } from '../../composables/useRaf'
+ 
+@@ -130,7 +130,7 @@ async function getBounding() {
+     console.log(error)
+   }
+ 
+-  const { top = 16, left = 16, right = 16, bottom = 16 } = props.gap
++  const { top = 16, left = 16, right = 16, bottom = 16 } = props.gap as FabGap
+   screen.width = sysInfo.windowWidth
+   screen.height = isH5 ? sysInfo.windowTop + sysInfo.windowHeight : sysInfo.windowHeight
+   bounding.minTop = isH5 ? sysInfo.windowTop + top : top
+diff --git a/components/wd-sticky-box/wd-sticky-box.vue b/components/wd-sticky-box/wd-sticky-box.vue
+index 0757972c3b8480ebc26fa05ed43fa2faee959ad5..75772324b2cf86a3783f0901a898e109296d3e4d 100644
+--- a/components/wd-sticky-box/wd-sticky-box.vue
++++ b/components/wd-sticky-box/wd-sticky-box.vue
+@@ -63,12 +63,12 @@ function handleResize(detail: any) {
+   // wd-sticky-box 大小变化时，重新监听所有吸顶元素
+   const temp = observerMap.value
+   observerMap.value = new Map()
+-  for (const [uid] of temp) {
++  temp.forEach((_observer, uid) => {
+     const child = stickyList.find((sticky) => {
+       return sticky.$.uid === uid
+     })
+     observerForChild(child)
+-  }
++  })
+   temp.forEach((observer) => {
+     observer.disconnect()
+   })
+diff --git a/components/wd-swiper/wd-swiper.vue b/components/wd-swiper/wd-swiper.vue
+index c662e565171dad9c350b7215dddd3e8fc11320ab..760ecb97810bff398c381bb0fa79e16d58145eaf 100644
+--- a/components/wd-swiper/wd-swiper.vue
++++ b/components/wd-swiper/wd-swiper.vue
+@@ -158,9 +158,10 @@ const swiperIndicator = computed(() => {
+     indicatorPosition: indicatorPosition || 'bottom'
+   }
+   if (isObj(indicator)) {
+-    swiperIndicator.type = indicator.type || 'dots'
+-    swiperIndicator.minShowNum = indicator.minShowNum || 2
+-    swiperIndicator.showControls = indicator.showControls || false
++    const indicatorOptions = indicator as Partial<SwiperNavProps>
++    swiperIndicator.type = indicatorOptions.type || 'dots'
++    swiperIndicator.minShowNum = indicatorOptions.minShowNum || 2
++    swiperIndicator.showControls = indicatorOptions.showControls || false
+   }
+   return swiperIndicator
+ })
+diff --git a/components/wd-tour/wd-tour.vue b/components/wd-tour/wd-tour.vue
+index d1c6e895a819a4e15178930c3869a7034d741887..9450fe533d388c41c2648d3005f0a46dc7f32422 100644
+--- a/components/wd-tour/wd-tour.vue
++++ b/components/wd-tour/wd-tour.vue
+@@ -69,7 +69,7 @@ export default {
+ <script lang="ts" setup>
+ import { ref, computed, watch, nextTick, type CSSProperties } from 'vue'
+ import { addUnit, getRect, getSystemInfo, isDef, objToStyle } from '../../common/util'
+-import { tourProps, type TourEmits, type TourExpose } from './types'
++import { tourProps, type TourEmits, type TourExpose, type TourStep } from './types'
+ import { useRaf } from '../../composables/useRaf'
+ import { useTranslate } from '../../composables/useTranslate'
+ import wdButton from '../wd-button/wd-button.vue'
+@@ -123,7 +123,7 @@ const highlightClass = computed(() => {
+ 
+ // 计算属性
+ const currentStep = computed(() => {
+-  return props.steps[currentIndex.value] || {}
++  return props.steps[currentIndex.value] || ({} as Partial<TourStep>)
+ })
+ // 提取公共的默认样式函数
+ /**
+diff --git a/composables/useUpload.ts b/composables/useUpload.ts
+index acad05a461562cb197299623100371280d559918..f6e8361e9a2919a2899fa71b43e2920c92664fee 100644
+--- a/composables/useUpload.ts
++++ b/composables/useUpload.ts
+@@ -174,7 +174,7 @@ export function useUpload(): UseUploadReturn {
+         path: item.path || '',
+         name: item.name || '',
+         size: item.size,
+-        type: 'image',
++        type: 'image' as const,
+         thumb: item.path || ''
+       }))
+     }

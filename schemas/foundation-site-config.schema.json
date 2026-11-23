@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "foundation-site-config.schema.json",
+  "title": "FoundationSiteConfig",
+  "description": "单实例基础版唯一站点的公开品牌配置。B/C 双向同步 primaryColor；后台与门户的亮暗模式独立保存。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "appName",
+    "adminName",
+    "logo",
+    "slogan",
+    "copyright",
+    "contactPhone",
+    "primaryColor",
+    "themeMode"
+  ],
+  "properties": {
+    "appName": { "type": "string", "maxLength": 100 },
+    "adminName": { "type": "string", "maxLength": 100 },
+    "logo": { "type": "string", "maxLength": 500 },
+    "slogan": { "type": "string", "maxLength": 200 },
+    "copyright": { "type": "string", "maxLength": 200 },
+    "contactPhone": { "type": "string", "maxLength": 20 },
+    "primaryColor": { "type": "string", "pattern": "^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$", "description": "B/C 共享的十六进制品牌主色。" },
+    "themeMode": { "type": "string", "enum": ["light", "dark", "system"], "description": "门户的默认外观；不改变后台管理员的亮暗偏好。" }
+  }
+}

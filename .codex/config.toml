@@ -1,0 +1,22 @@
+[mcp_servers.context7]
+url = "https://mcp.context7.com/mcp"
+
+[mcp_servers.context7.http_headers]
+CONTEXT7_API_KEY = "ctx7sk-c7bca4db-a8f3-46f3-942a-aba729933b35"
+
+[mcp_servers.nuxt-remote]
+url = "https://nuxt.com/mcp"
+
+[mcp_servers.playwright]
+command = "npx"
+args = ["@playwright/mcp@latest"]
+
+[mcp_servers.pocketbase]
+command = "npx"
+args = [
+    "-y",
+    "dynamic-pocketbase-mcp",
+]
+
+[mcp_servers.pocketbase.env]
+POCKETBASE_URL = "http://127.0.0.1:8090"

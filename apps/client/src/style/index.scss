@@ -1,0 +1,383 @@
+/**
+ * @description C 端基础门户全局设计令牌与基础样式。
+ *   视觉口径：暖纸底 + 墨绿主色 + 陶土辅助色；卡片纯白、发丝描边、单层柔光阴影。
+ *   页面只引用令牌与 `.portal-*` 工具类，不硬编码品牌色、圆角与阴影。
+ * @file src/style/index.scss
+ */
+:root,
+page {
+  /* ---- 品牌色 ---- */
+  --foundation-primary: #2f6f5e;
+  /* 深主色：正文级强调、soft 按钮文字，保证在浅底上 ≥ 4.5:1 */
+  --foundation-primary-deep: #24564a;
+  /* 主色浅染：soft 按钮 / 选中态底 */
+  --foundation-primary-tint: #e4efe9;
+  --foundation-primary-soft: #d3e5dd;
+  --foundation-on-primary: #fff;
+
+  /* ---- 中性色 ---- */
+  --foundation-background: #faf8f3;
+  --foundation-card: #ffffff;
+  --foundation-card-subtle: #f7f5ef;
+  --foundation-surface: #eef4f1;
+  --foundation-hairline: #ecebe5;
+  --foundation-border: #e6e6df;
+  --foundation-border-strong: #d8d8cf;
+
+  /* ---- 文字层级（正文 14px 起全部 ≥ 4.5:1） ---- */
+  --foundation-text: #1f2d28;
+  --foundation-text-secondary: #4f5f59;
+  --foundation-text-muted: #6e7a74;
+
+  /* ---- 语义色 ---- */
+  --foundation-interactive: var(--foundation-primary);
+  --foundation-danger: #b73536;
+  --foundation-danger-surface: #fbeceb;
+  --foundation-success: #2f6f5e;
+  --foundation-success-surface: #e4f0eb;
+  --foundation-warning: #7a5a1f;
+  --foundation-warning-surface: #f7eeda;
+  --foundation-info-surface: #e9f2fc;
+  --foundation-info-text: #345c85;
+  --foundation-accent-text: #765923;
+  --foundation-accent-surface: #f5ead4;
+  --foundation-playful-surface: #fdeee2;
+  --foundation-playful-text: #8b4a29;
+
+  /* ---- 禁用态（不用透明度，避免浅绿 + 白字不可读） ---- */
+  --foundation-disabled-bg: #e7e9e6;
+  --foundation-disabled-text: #98a09b;
+
+  /* ---- 圆角 / 阴影 ---- */
+  --foundation-radius: 18px;
+  --foundation-radius-sm: 14px;
+  --foundation-radius-lg: 24px;
+  --foundation-radius-xs: 10px;
+  --foundation-shadow: 0 1px 3px rgba(31, 45, 40, 0.04), 0 6px 18px rgba(31, 45, 40, 0.04);
+  --foundation-shadow-card: 0 2px 8px rgba(31, 45, 40, 0.04), 0 10px 24px rgba(31, 45, 40, 0.05);
+  --foundation-shadow-float: 0 10px 30px rgba(31, 45, 40, 0.09);
+  --foundation-shadow-bar: 0 -1px 0 rgba(31, 45, 40, 0.04), 0 -4px 16px rgba(31, 45, 40, 0.03);
+  /* 报告封面渐变：纯 CSS 绘制，微光泽感 */
+  --foundation-cover-grad: linear-gradient(158deg, #378070 0%, #2f6f5e 52%, #225145 100%);
+
+  /* ---- 字体 ---- */
+  --foundation-font: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* ---- 尺寸 ---- */
+  --foundation-tabbar-height: 56px;
+  --foundation-navbar-height: 44px;
+  --foundation-page-padding: 16px;
+  /* 顶部安全区（状态栏 / 胶囊）与底部安全区统一从这里取 */
+  --foundation-safe-top: env(safe-area-inset-top);
+  --foundation-safe-bottom: env(safe-area-inset-bottom);
+  /* 底部固定操作条高度（分册下载 / 编辑保存 / 方向确认），M7-B..E 复用 */
+  --foundation-action-bar-height: 64px;
+  --foundation-page-bottom: calc(72px + env(safe-area-inset-bottom));
+
+  /* C 端布局与字号统一使用 px（375pt 基准），只有发丝线保留 1rpx。
+     字号用 px 而非 rpx：rpx 在 320pt 小屏会把 14px 压到 12px，且组件库 Wot 自身也是 px 基准。 */
+  --fs-tag: 11px;
+  --fs-caption: 12px;
+  --fs-sm: 13px;
+  --fs-body: 14px;
+  --fs-body-lg: 15px;
+  --fs-title: 16px;
+  --fs-title-lg: 17px;
+  --fs-hero: 20px;
+  --fs-display: 22px;
+  /* 行高令牌：标题紧凑、正文舒展 */
+  --lh-title: 1.35;
+  --lh-body: 1.65;
+  /* 间距令牌：4px 步进，与 px 基准一致 */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+
+  /* ---- Wot UI 主题映射（不恢复其默认蓝白主题） ---- */
+  --wot-primary-1: var(--foundation-primary-tint);
+  --wot-primary-2: var(--foundation-primary-soft);
+  --wot-primary-3: var(--foundation-primary);
+  --wot-primary-4: var(--foundation-primary);
+  --wot-primary-5: var(--foundation-primary);
+  --wot-primary-6: var(--foundation-primary);
+  --wot-primary-7: var(--foundation-primary-deep);
+  --wot-button-primary-bg: var(--foundation-primary);
+  --wot-button-primary-bg-active: var(--foundation-primary-deep);
+  --wot-button-main-color: var(--foundation-on-primary);
+  --wot-button-primary-color: var(--foundation-primary-deep);
+  --wot-button-primary-color-active: var(--foundation-primary-deep);
+  --wot-button-primary-soft-bg: var(--foundation-primary-tint);
+  --wot-button-primary-soft-bg-active: var(--foundation-primary-soft);
+  /* 按钮高度分级：只有页面主 CTA 用 48；卡片内动作 44；文字链 36（外层仍留 44 可点行高）。 */
+  --wot-button-height-mini: 32px;
+  --wot-button-height-small: 36px;
+  --wot-button-height-medium: 44px;
+  --wot-button-height-large: 48px;
+  --wot-button-radius-main: 14px;
+  --wot-text-main: var(--foundation-text);
+  --wot-text-secondary: var(--foundation-text-secondary);
+  --wot-text-auxiliary: var(--foundation-text-muted);
+  --wot-icon-main: var(--foundation-text);
+  --wot-icon-secondary: var(--foundation-text-secondary);
+  --wot-icon-auxiliary: var(--foundation-text-muted);
+  --wot-border-main: var(--foundation-border);
+  --wot-border-light: var(--foundation-hairline);
+  --wot-filled-content: var(--foundation-surface);
+  --wot-filled-bottom: var(--foundation-background);
+  --wot-filled-oppo: var(--foundation-card);
+  --wot-feedback-active: var(--foundation-card-subtle);
+  background: var(--foundation-background);
+  color: var(--foundation-text);
+  font-family: var(--foundation-font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+page,
+uni-page-body,
+.page {
+  min-height: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  background: var(--foundation-background);
+}
+
+/* 二级页统一页头由 wd-navbar 承担，内容区自行控制左右 padding。 */
+.foundation-portal-page > .page-header {
+  background: var(--foundation-background);
+}
+
+button,
+uni-button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  color: inherit;
+  touch-action: manipulation;
+}
+
+[role='button'],
+[role='tab'] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button::after,
+uni-button::after {
+  border: 0;
+}
+
+input,
+textarea,
+uni-input,
+uni-textarea {
+  box-sizing: border-box;
+  font: inherit;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+button:focus-visible,
+uni-button:focus-visible,
+[role='button']:focus-visible,
+[role='link']:focus-visible,
+[role='tab']:focus-visible {
+  outline: 3px solid var(--foundation-interactive);
+  outline-offset: 3px;
+}
+
+/* #ifdef H5 */
+/* H5 桌面预览保持移动阅读宽度，不添加仿真手机卡片。 */
+@media screen and (min-width: 768px) {
+  .foundation-portal-page {
+    width: min(100%, 480px);
+    min-height: 100vh;
+    margin: 0 auto;
+  }
+
+  /* Wot 的 fixed 导航在 H5 会脱离页面壳；直接定位自定义 class，不能依赖后代选择器。 */
+  .foundation-portal-navbar,
+  .foundation-portal-tabbar {
+    right: auto !important;
+    left: calc(50% - 240px) !important;
+    width: 480px !important;
+    max-width: 480px !important;
+    transform: none !important;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .foundation-portal-navbar,
+  .foundation-portal-tabbar {
+    right: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+/* #endif */
+
+/* 公共控件主题在真实 view 上继承，避免小程序虚拟组件丢失 class。 */
+.foundation-portal-page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  --wot-navbar-bg: var(--foundation-background);
+  --wot-navbar-color: var(--foundation-text);
+  --wot-navbar-title-font-size: var(--fs-title-lg);
+  --wot-navbar-title-font-weight: 600;
+  --wot-navbar-height: var(--foundation-navbar-height);
+  --wot-navbar-left-padding: 0 6px;
+  --wot-tabbar-bg: var(--foundation-card);
+  --wot-tabbar-height: var(--foundation-tabbar-height);
+  --wot-cell-group-insert-margin: 0;
+  --wot-cell-group-insert-radius: var(--foundation-radius);
+  --wot-cell-bg: var(--foundation-card);
+  --wot-cell-title-color: var(--foundation-text);
+  --wot-cell-title-font-size: var(--fs-body-lg);
+  --wot-cell-value-color: var(--foundation-text-muted);
+  --wot-cell-label-color: var(--foundation-text-secondary);
+  --wot-cell-arrow-color: var(--foundation-text-muted);
+  --wot-cell-icon-color: var(--foundation-interactive);
+  --wot-cell-icon-size: 18px;
+  --wot-cell-padding: 15px 16px;
+  --wot-cell-border-color: var(--foundation-hairline);
+  --wot-search-bg: var(--foundation-background);
+  --wot-search-input-bg: var(--foundation-card);
+  --wot-search-input-height: 44px;
+  --wot-tabs-nav-bg: transparent;
+  --wot-tabs-nav-height: 46px;
+  --wot-progress-bg: var(--foundation-border);
+  --wot-progress-color: var(--foundation-primary);
+  --wot-button-radius: 14px;
+  overflow-wrap: break-word;
+}
+
+/* ---- 通用块：卡片 / 可点态 / 提示 ---- */
+.portal-card {
+  box-sizing: border-box;
+  border: 1px solid var(--foundation-border);
+  border-radius: var(--foundation-radius);
+  background: var(--foundation-card);
+  box-shadow: var(--foundation-shadow);
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+/* 可点卡片：按下时平滑微缩 + 底色变化，给用户清晰灵敏的触觉反馈。 */
+.portal-tap {
+  transition:
+    transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+  will-change: transform;
+}
+
+.portal-tap:active {
+  background: var(--foundation-card-subtle);
+  transform: scale(0.988);
+}
+
+.portal-section-title {
+  display: block;
+  color: var(--foundation-text);
+  font-size: var(--fs-title);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-title);
+}
+
+.portal-hint {
+  display: block;
+  color: var(--foundation-text-muted);
+  font-size: var(--fs-caption);
+  line-height: var(--lh-body);
+}
+
+/* ---- 按钮：统一高度 / 圆角 / 禁用态 ---- */
+.foundation-portal-page .wd-button {
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.2px;
+}
+
+.foundation-portal-page .wd-button.is-large {
+  font-size: var(--fs-body-lg);
+}
+
+/* 禁用态改用中性底 + 中灰字：浅绿底 + 半透明白字在客户机上看像坏掉。 */
+.foundation-portal-page .wd-button.is-disabled:not(.is-text) {
+  opacity: 1;
+  border-color: transparent;
+  background: var(--foundation-disabled-bg);
+  color: var(--foundation-disabled-text);
+}
+
+.foundation-portal-page .wd-button.is-disabled.is-text {
+  opacity: 0.5;
+  background: transparent;
+}
+
+/* soft 变体加大对比：文字用深主色，底色用主色浅染。 */
+.foundation-portal-page .wd-button.is-soft.is-primary {
+  background: var(--foundation-primary-tint);
+  color: var(--foundation-primary-deep);
+}
+
+/* ---- 单元格：图标与文字基线对齐，最后一行不留双线 ---- */
+.foundation-portal-page .wd-cell__prefix {
+  display: flex;
+  align-items: center;
+}
+
+.foundation-portal-page .wd-cell-group {
+  overflow: hidden;
+  border: 1px solid var(--foundation-border);
+  background: var(--foundation-card);
+  box-shadow: var(--foundation-shadow);
+}
+
+.foundation-portal-page .wd-cell:last-child::after {
+  display: none;
+}
+
+/* ---- 输入 / 文本域 ---- */
+.foundation-portal-page .wd-input,
+.foundation-portal-page .wd-textarea {
+  --wot-input-inner-color: var(--foundation-text);
+  --wot-input-inner-placeholder-color: var(--foundation-text-muted);
+}
+
+.foundation-portal-navbar .wd-navbar__title {
+  max-width: calc(100% - 160px);
+}
+
+.foundation-portal-tabbar {
+  border-top: 1px solid var(--foundation-hairline);
+}
+
+.portal-interactive:active {
+  opacity: 0.8;
+}

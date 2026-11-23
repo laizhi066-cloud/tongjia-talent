@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "ctx7sk-c7bca4db-a8f3-46f3-942a-aba729933b35"
+      }
+    },
+    "pocketbase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "dynamic-pocketbase-mcp"
+      ],
+      "env": {
+        "POCKETBASE_URL": "http://127.0.0.1:8090"
+      }
+    },
+    "nuxt-remote": {
+      "type": "http",
+      "url": "https://nuxt.com/mcp"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ]
+    }
+  }
+}

@@ -1,0 +1,906 @@
+{
+  "generatedAt": "2026-11-17T09:32:21.828Z",
+  "url": "http://127.0.0.1:8103",
+  "collections": [
+    {
+      "name": "_mfas",
+      "type": "base",
+      "fields": [
+        "id",
+        "collectionRef",
+        "recordRef",
+        "method",
+        "created",
+        "updated"
+      ],
+      "indexes": [
+        "CREATE INDEX `idx_mfas_collectionRef_recordRef` ON `_mfas` (collectionRef,recordRef)"
+      ]
+    },
+    {
+      "name": "_otps",
+      "type": "base",
+      "fields": [
+        "id",
+        "collectionRef",
+        "recordRef",
+        "password",
+        "sentTo",
+        "created",
+        "updated"
+      ],
+      "indexes": [
+        "CREATE INDEX `idx_otps_collectionRef_recordRef` ON `_otps` (collectionRef, recordRef)"
+      ]
+    },
+    {
+      "name": "_externalAuths",
+      "type": "base",
+      "fields": [
+        "id",
+        "collectionRef",
+        "recordRef",
+        "provider",
+        "providerId",
+        "created",
+        "updated"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_externalAuths_record_provider` ON `_externalAuths` (collectionRef, recordRef, provider)",
+        "CREATE UNIQUE INDEX `idx_externalAuths_collection_provider` ON `_externalAuths` (collectionRef, provider, providerId)"
+      ]
+    },
+    {
+      "name": "_authOrigins",
+      "type": "base",
+      "fields": [
+        "id",
+        "collectionRef",
+        "recordRef",
+        "fingerprint",
+        "created",
+        "updated"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_authOrigins_unique_pairs` ON `_authOrigins` (collectionRef, recordRef, fingerprint)"
+      ]
+    },
+    {
+      "name": "_superusers",
+      "type": "auth",
+      "fields": [
+        "id",
+        "password",
+        "tokenKey",
+        "email",
+        "emailVisibility",
+        "verified",
+        "created",
+        "updated"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_tokenKey_pbc_3142635823` ON `_superusers` (`tokenKey`)",
+        "CREATE UNIQUE INDEX `idx_email_pbc_3142635823` ON `_superusers` (`email`) WHERE `email` != ''"
+      ]
+    },
+    {
+      "name": "users",
+      "type": "auth",
+      "fields": [
+        "id",
+        "password",
+        "tokenKey",
+        "email",
+        "emailVisibility",
+        "verified",
+        "name",
+        "avatar",
+        "created",
+        "updated",
+        "displayName",
+        "username",
+        "nickname",
+        "phone",
+        "gender",
+        "birthday",
+        "region",
+        "bio",
+        "openid",
+        "unionid",
+        "deletedOpenidHash",
+        "deletedUnionidHash",
+        "deletedPhoneHash",
+        "status",
+        "forceLogoutAt",
+        "deptId"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_tokenKey__pb_users_auth_` ON `users` (`tokenKey`)",
+        "CREATE UNIQUE INDEX `idx_email__pb_users_auth_` ON `users` (`email`) WHERE `email` != ''",
+        "CREATE UNIQUE INDEX idx_users_openid_unique ON users (openid) WHERE openid != \"\"",
+        "CREATE UNIQUE INDEX idx_users_unionid_unique ON users (unionid) WHERE unionid != \"\"",
+        "CREATE UNIQUE INDEX idx_users_phone_unique ON users (phone) WHERE phone != \"\""
+      ]
+    },
+    {
+      "name": "roles",
+      "type": "base",
+      "fields": [
+        "id",
+        "roleName",
+        "roleKey",
+        "roleSort",
+        "dataScope",
+        "status",
+        "remark",
+        "created",
+        "updated"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_roles_key ON roles (roleKey)"
+      ]
+    },
+    {
+      "name": "menus",
+      "type": "base",
+      "fields": [
+        "id",
+        "menuType",
+        "menuName",
+        "permissionCode",
+        "path",
+        "component",
+        "icon",
+        "orderNum",
+        "visible",
+        "status",
+        "created",
+        "updated",
+        "parentId"
+      ],
+      "indexes": []
+    },
+    {
+      "name": "depts",
+      "type": "base",
+      "fields": [
+        "id",
+        "deptName",
+        "orderNum",
+        "leader",
+        "phone",
+        "email",
+        "status",
+        "created",
+        "updated",
+        "parentId"
+      ],
+      "indexes": []
+    },
+    {
+      "name": "posts",
+      "type": "base",
+      "fields": [
+        "id",
+        "postCode",
+        "postName",
+        "postSort",
+        "status",
+        "remark",
+        "created",
+        "updated"
+      ],
+      "indexes": []
+    },
+    {
+      "name": "dict_types",
+      "type": "base",
+      "fields": [
+        "id",
+        "dictName",
+        "dictType",
+        "status",
+        "remark",
+        "created",
+        "updated"
+      ],
+      "indexes": []
+    },
+    {
+      "name": "dict_data",
+      "type": "base",
+      "fields": [
+        "id",
+        "dictSort",
+        "dictLabel",
+        "dictValue",
+        "cssClass",
+        "listClass",
+        "icon",
+        "backgroundColor",
+        "color",
+        "isDefault",
+        "status",
+        "remark",
+        "created",
+        "updated",
+        "dictTypeId"
+      ],
+      "indexes": []
+    },
+    {
+      "name": "configs",
+      "type": "base",
+      "fields": [
+        "id",
+        "configName",
+        "configKey",
+        "configValue",
+        "configType",
+        "remark",
+        "created",
+        "updated"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_configs_key ON configs (configKey)"
+      ]
+    },
+    {
+      "name": "user_roles",
+      "type": "base",
+      "fields": [
+        "id",
+        "created",
+        "updated",
+        "userId",
+        "roleId"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_user_roles_pair ON user_roles (userId, roleId)"
+      ]
+    },
+    {
+      "name": "role_menus",
+      "type": "base",
+      "fields": [
+        "id",
+        "created",
+        "updated",
+        "roleId",
+        "menuId"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_role_menus_pair ON role_menus (roleId, menuId)"
+      ]
+    },
+    {
+      "name": "user_posts",
+      "type": "base",
+      "fields": [
+        "id",
+        "created",
+        "updated",
+        "userId",
+        "postId"
+      ],
+      "indexes": []
+    },
+    {
+      "name": "role_depts",
+      "type": "base",
+      "fields": [
+        "id",
+        "created",
+        "updated",
+        "roleId",
+        "deptId"
+      ],
+      "indexes": []
+    },
+    {
+      "name": "login_logs",
+      "type": "base",
+      "fields": [
+        "id",
+        "userName",
+        "ipaddr",
+        "status",
+        "msg",
+        "loginTime",
+        "loginType",
+        "userAgent",
+        "created",
+        "updated",
+        "userId"
+      ],
+      "indexes": []
+    },
+    {
+      "name": "oper_logs",
+      "type": "base",
+      "fields": [
+        "id",
+        "title",
+        "operType",
+        "method",
+        "requestMethod",
+        "operName",
+        "operUrl",
+        "operIp",
+        "operParam",
+        "jsonResult",
+        "status",
+        "errorMsg",
+        "costTime",
+        "created",
+        "updated",
+        "userId"
+      ],
+      "indexes": []
+    },
+    {
+      "name": "user_sessions",
+      "type": "base",
+      "fields": [
+        "id",
+        "ipaddr",
+        "browser",
+        "os",
+        "loginTime",
+        "lastActivityTime",
+        "status",
+        "created",
+        "updated",
+        "userId"
+      ],
+      "indexes": []
+    },
+    {
+      "name": "error_logs",
+      "type": "base",
+      "fields": [
+        "id",
+        "source",
+        "level",
+        "message",
+        "stack",
+        "url",
+        "method",
+        "statusCode",
+        "platform",
+        "ua",
+        "fingerprint",
+        "count",
+        "status",
+        "lastSeen",
+        "meta",
+        "created",
+        "updated",
+        "userId"
+      ],
+      "indexes": []
+    },
+    {
+      "name": "uploads",
+      "type": "base",
+      "fields": [
+        "id",
+        "file",
+        "filename",
+        "mimeType",
+        "size",
+        "purpose",
+        "created",
+        "updated",
+        "userId"
+      ],
+      "indexes": []
+    },
+    {
+      "name": "talent_parents",
+      "type": "base",
+      "fields": [
+        "id",
+        "parentNo",
+        "name",
+        "mobileCipher",
+        "mobileHash",
+        "maskedMobile",
+        "idNoCipher",
+        "idNoHash",
+        "maskedIdNo",
+        "gender",
+        "birthday",
+        "source",
+        "status",
+        "registeredAt",
+        "remark",
+        "created",
+        "updated",
+        "userId",
+        "createdBy",
+        "updatedBy"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_talent_parents_no ON talent_parents (parentNo)",
+        "CREATE UNIQUE INDEX idx_talent_parents_mobile ON talent_parents (mobileHash)",
+        "CREATE UNIQUE INDEX idx_talent_parents_idno ON talent_parents (idNoHash) WHERE idNoHash != \"\"",
+        "CREATE UNIQUE INDEX idx_talent_parents_user ON talent_parents (userId) WHERE userId != \"\"",
+        "CREATE INDEX idx_talent_parents_status ON talent_parents (status)"
+      ]
+    },
+    {
+      "name": "talent_children",
+      "type": "base",
+      "fields": [
+        "id",
+        "name",
+        "gender",
+        "birthday",
+        "relation",
+        "idNoCipher",
+        "idNoHash",
+        "maskedIdNo",
+        "query",
+        "queryReason",
+        "querySeq",
+        "queryAttempts",
+        "queryStartedAt",
+        "queryAt",
+        "status",
+        "unbindAt",
+        "created",
+        "updated",
+        "parentId",
+        "unbindBy",
+        "createdBy",
+        "updatedBy"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_talent_children_idno ON talent_children (idNoHash)",
+        "CREATE INDEX idx_talent_children_parent ON talent_children (parentId)",
+        "CREATE INDEX idx_talent_children_query ON talent_children (query)",
+        "CREATE INDEX idx_talent_children_parent_status ON talent_children (parentId, status)"
+      ]
+    },
+    {
+      "name": "talent_levels",
+      "type": "base",
+      "fields": [
+        "id",
+        "code",
+        "name",
+        "sortOrder",
+        "range",
+        "tone",
+        "status",
+        "created",
+        "updated",
+        "createdBy",
+        "updatedBy"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_talent_levels_code ON talent_levels (code) WHERE code != \"\"",
+        "CREATE UNIQUE INDEX idx_talent_levels_sort ON talent_levels (sortOrder) WHERE sortOrder > 0"
+      ]
+    },
+    {
+      "name": "talent_gene_reports",
+      "type": "base",
+      "fields": [
+        "id",
+        "subjectType",
+        "subjectId",
+        "reportNo",
+        "name",
+        "gender",
+        "birthday",
+        "age",
+        "maskedIdNo",
+        "idNoHash",
+        "issuer",
+        "filedAt",
+        "syncedAt",
+        "source",
+        "version",
+        "books",
+        "sections",
+        "sectionCount",
+        "status",
+        "created",
+        "updated",
+        "parentId",
+        "createdBy",
+        "updatedBy"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_talent_gene_reports_subject ON talent_gene_reports (subjectType, subjectId)",
+        "CREATE UNIQUE INDEX idx_talent_gene_reports_no ON talent_gene_reports (reportNo)",
+        "CREATE INDEX idx_talent_gene_reports_parent ON talent_gene_reports (parentId)",
+        "CREATE INDEX idx_talent_gene_reports_synced ON talent_gene_reports (syncedAt)"
+      ]
+    },
+    {
+      "name": "talent_reports",
+      "type": "base",
+      "fields": [
+        "id",
+        "reportNo",
+        "reportType",
+        "title",
+        "coverUrl",
+        "pdfUrl",
+        "pdfFileName",
+        "pdfFileKey",
+        "pdfUploadedAt",
+        "testDate",
+        "publishedAt",
+        "withdrawnAt",
+        "status",
+        "errorMessage",
+        "totalItems",
+        "sourceSystem",
+        "sourceExternalId",
+        "externalRevision",
+        "sourceFingerprint",
+        "syncedAt",
+        "matchedPlanIds",
+        "planMatchPolicyVersion",
+        "planMatchReason",
+        "sourceResults",
+        "subjectType",
+        "subjectId",
+        "factorCount",
+        "snapshotVersion",
+        "snapshotAt",
+        "queriedAt",
+        "openVolumeIds",
+        "factorSnapshot",
+        "volumeSnapshot",
+        "directionSnapshot",
+        "selections",
+        "versions",
+        "restoredAt",
+        "created",
+        "updated",
+        "parentId",
+        "geneReportId",
+        "createdBy",
+        "updatedBy"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_talent_reports_subject ON talent_reports (subjectType, subjectId) WHERE subjectType != \"\"",
+        "CREATE INDEX idx_talent_reports_status ON talent_reports (status)",
+        "CREATE INDEX idx_talent_reports_parent ON talent_reports (parentId)",
+        "CREATE INDEX idx_talent_reports_gene ON talent_reports (geneReportId)",
+        "CREATE INDEX idx_talent_reports_subject_id ON talent_reports (subjectId)",
+        "CREATE UNIQUE INDEX idx_talent_reports_no ON talent_reports (reportNo)"
+      ]
+    },
+    {
+      "name": "talent_sync_logs",
+      "type": "base",
+      "fields": [
+        "id",
+        "trigger",
+        "status",
+        "startedAt",
+        "finishedAt",
+        "durationMs",
+        "received",
+        "generated",
+        "skipped",
+        "failedCount",
+        "message",
+        "details",
+        "syncScope",
+        "mode",
+        "refreshed",
+        "createdCount",
+        "empty",
+        "subjectDetails",
+        "operatorId",
+        "created",
+        "updated"
+      ],
+      "indexes": []
+    },
+    {
+      "name": "talent_advice_versions",
+      "type": "base",
+      "fields": [
+        "id",
+        "versionNo",
+        "status",
+        "cycle",
+        "effectiveAt",
+        "nextUpdateAt",
+        "syncedAt",
+        "source",
+        "note",
+        "operatorId",
+        "operatorName",
+        "created",
+        "updated",
+        "createdBy",
+        "updatedBy"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_talent_advice_versions_no ON talent_advice_versions (versionNo)",
+        "CREATE UNIQUE INDEX idx_talent_advice_versions_active ON talent_advice_versions (status) WHERE status = \"active\"",
+        "CREATE INDEX idx_talent_advice_versions_effective ON talent_advice_versions (effectiveAt)"
+      ]
+    },
+    {
+      "name": "talent_advice_docs",
+      "type": "base",
+      "fields": [
+        "id",
+        "adviceNo",
+        "reportNo",
+        "subjectType",
+        "subjectId",
+        "name",
+        "maskedIdNo",
+        "idNoHash",
+        "gender",
+        "birthday",
+        "age",
+        "matchKey",
+        "versionName",
+        "publishStatus",
+        "publishedAt",
+        "withdrawnAt",
+        "syncedAt",
+        "source",
+        "books",
+        "sections",
+        "sectionCount",
+        "bookCount",
+        "entropyCounts",
+        "firstFactorName",
+        "created",
+        "updated",
+        "geneReportId",
+        "reportId",
+        "versionId",
+        "parentId",
+        "createdBy",
+        "updatedBy"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_talent_advice_docs_no ON talent_advice_docs (adviceNo)",
+        "CREATE UNIQUE INDEX idx_talent_advice_docs_version_gene ON talent_advice_docs (versionId, geneReportId) WHERE geneReportId != \"\"",
+        "CREATE INDEX idx_talent_advice_docs_version_status ON talent_advice_docs (versionId, publishStatus)",
+        "CREATE INDEX idx_talent_advice_docs_report ON talent_advice_docs (reportId)",
+        "CREATE INDEX idx_talent_advice_docs_gene ON talent_advice_docs (geneReportId)",
+        "CREATE INDEX idx_talent_advice_docs_subject ON talent_advice_docs (subjectType, subjectId)",
+        "CREATE INDEX idx_talent_advice_docs_reportno ON talent_advice_docs (reportNo)",
+        "CREATE INDEX idx_talent_advice_docs_synced ON talent_advice_docs (syncedAt)"
+      ]
+    },
+    {
+      "name": "talent_reading_progress",
+      "type": "base",
+      "fields": [
+        "id",
+        "readItemIds",
+        "lastReadItemId",
+        "updatedAt",
+        "created",
+        "updated",
+        "reportId",
+        "userId"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_talent_reading_progress_pair ON talent_reading_progress (reportId, userId)"
+      ]
+    },
+    {
+      "name": "talent_factor_libraries",
+      "type": "base",
+      "fields": [
+        "id",
+        "gender",
+        "age",
+        "source",
+        "version",
+        "syncedAt",
+        "itemCount",
+        "slotTotal",
+        "filledCount",
+        "status",
+        "created",
+        "updated",
+        "syncedBy"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_talent_factor_libraries_gender_age ON talent_factor_libraries (gender, age)"
+      ]
+    },
+    {
+      "name": "talent_factors",
+      "type": "base",
+      "fields": [
+        "id",
+        "code",
+        "name",
+        "category",
+        "categoryName",
+        "sortOrder",
+        "slots",
+        "slotTotal",
+        "filledSlotCount",
+        "partialSlotCount",
+        "created",
+        "updated",
+        "libraryId",
+        "createdBy",
+        "updatedBy"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_talent_factors_library_code ON talent_factors (libraryId, code)",
+        "CREATE INDEX idx_talent_factors_category ON talent_factors (category)",
+        "CREATE INDEX idx_talent_factors_sort ON talent_factors (libraryId, sortOrder)"
+      ]
+    },
+    {
+      "name": "talent_factor_notes",
+      "type": "base",
+      "fields": [
+        "id",
+        "code",
+        "factorCode",
+        "category",
+        "levelCode",
+        "note",
+        "ageRange",
+        "gender",
+        "status",
+        "created",
+        "updated",
+        "createdBy",
+        "updatedBy"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_talent_factor_notes_code ON talent_factor_notes (code)",
+        "CREATE INDEX idx_talent_factor_notes_factor ON talent_factor_notes (factorCode)",
+        "CREATE INDEX idx_talent_factor_notes_level ON talent_factor_notes (levelCode)",
+        "CREATE INDEX idx_talent_factor_notes_status ON talent_factor_notes (status)"
+      ]
+    },
+    {
+      "name": "talent_directions",
+      "type": "base",
+      "fields": [
+        "id",
+        "code",
+        "name",
+        "description",
+        "icon",
+        "requirements",
+        "tierIds",
+        "defaultTierId",
+        "aliases",
+        "version",
+        "status",
+        "created",
+        "updated",
+        "createdBy",
+        "updatedBy"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_talent_directions_code ON talent_directions (code)",
+        "CREATE INDEX idx_talent_directions_status ON talent_directions (status)"
+      ]
+    },
+    {
+      "name": "talent_tiers",
+      "type": "base",
+      "fields": [
+        "id",
+        "code",
+        "name",
+        "sortOrder",
+        "teacher",
+        "freq",
+        "headline",
+        "description",
+        "preset",
+        "isDefault",
+        "status",
+        "created",
+        "updated",
+        "updatedBy"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_talent_tiers_code ON talent_tiers (code)",
+        "CREATE UNIQUE INDEX idx_talent_tiers_sort ON talent_tiers (sortOrder)",
+        "CREATE UNIQUE INDEX idx_talent_tiers_default ON talent_tiers (isDefault) WHERE isDefault = 1"
+      ]
+    },
+    {
+      "name": "talent_direction_requests",
+      "type": "base",
+      "fields": [
+        "id",
+        "subjectType",
+        "subjectId",
+        "manualName",
+        "tierId",
+        "status",
+        "targetDirectionId",
+        "mergedAt",
+        "created",
+        "updated",
+        "reportId",
+        "parentId",
+        "mergedBy",
+        "createdBy"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_talent_direction_requests_pending ON talent_direction_requests (reportId, manualName) WHERE status = \"待归并\"",
+        "CREATE INDEX idx_talent_direction_requests_status ON talent_direction_requests (status)",
+        "CREATE INDEX idx_talent_direction_requests_report ON talent_direction_requests (reportId)",
+        "CREATE INDEX idx_talent_direction_requests_parent ON talent_direction_requests (parentId)"
+      ]
+    },
+    {
+      "name": "talent_report_pdfs",
+      "type": "base",
+      "fields": [
+        "id",
+        "volumeId",
+        "contentHash",
+        "snapshotVersion",
+        "storage",
+        "objectKey",
+        "fileName",
+        "byteSize",
+        "pageCount",
+        "templateVersion",
+        "fontVersion",
+        "watermarkPolicy",
+        "watermarkAt",
+        "renderedAt",
+        "created",
+        "updated",
+        "reportId"
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_talent_report_pdfs_content ON talent_report_pdfs (reportId, volumeId, contentHash)",
+        "CREATE INDEX idx_talent_report_pdfs_report ON talent_report_pdfs (reportId)",
+        "CREATE INDEX idx_talent_report_pdfs_hash ON talent_report_pdfs (contentHash)",
+        "CREATE INDEX idx_talent_report_pdfs_rendered ON talent_report_pdfs (renderedAt)"
+      ]
+    },
+    {
+      "name": "talent_pdf_downloads",
+      "type": "base",
+      "fields": [
+        "id",
+        "reportId",
+        "volumeId",
+        "parentUserId",
+        "subjectType",
+        "subjectId",
+        "result",
+        "storage",
+        "contentHash",
+        "renderMs",
+        "cacheHit",
+        "at",
+        "ipHash",
+        "uaFamily",
+        "requestId",
+        "created",
+        "updated"
+      ],
+      "indexes": [
+        "CREATE INDEX idx_talent_pdf_downloads_report_at ON talent_pdf_downloads (reportId, at)",
+        "CREATE INDEX idx_talent_pdf_downloads_at ON talent_pdf_downloads (at)",
+        "CREATE INDEX idx_talent_pdf_downloads_parent_at ON talent_pdf_downloads (parentUserId, at)"
+      ]
+    }
+  ]
+}

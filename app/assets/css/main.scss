@@ -1,0 +1,74 @@
+/* =========================================================================
+   Foundation — Global CSS Reset (design tokens moved to tailwind.css)
+   ========================================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--foreground);
+  background: var(--background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 后台弹框尺寸体系：Naive UI 的 modal 挂原子类时不总能生成宽度，统一兜底为响应式宽度。 */
+.n-modal {
+  width: min(600px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+}
+
+.n-modal.w-\[360px\] { width: min(360px, calc(100vw - 32px)); }
+.n-modal.w-\[420px\],
+.n-modal.max-w-md { width: min(420px, calc(100vw - 32px)); }
+.n-modal.w-\[460px\] { width: min(460px, calc(100vw - 32px)); }
+.n-modal.w-\[520px\] { width: min(520px, calc(100vw - 32px)); }
+.n-modal.w-\[560px\],
+.n-modal.max-w-lg { width: min(560px, calc(100vw - 32px)); }
+.n-modal.w-\[640px\],
+.n-modal.max-w-2xl { width: min(640px, calc(100vw - 32px)); }
+.n-modal.w-\[880px\] { width: min(880px, calc(100vw - 32px)); }
+.n-modal.w-\[900px\] { width: min(900px, calc(100vw - 32px)); }
+.n-modal.w-\[1340px\] { width: min(1340px, calc(100vw - 32px)); }
+
+.n-modal .n-card-content {
+  max-height: min(72vh, 720px);
+  overflow: auto;
+}
+
+@media (max-width: 640px) {
+  .n-modal {
+    width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+  }
+
+  .n-modal .n-card-content {
+    max-height: 70vh;
+  }
+}
+
+/* Page transition — fade + slight slide */
+.page-transition {
+  animation: pageFadeIn 0.25s ease;
+  height: 100%;
+}
+.page-transition .admin-container {
+  height: 100%;
+}
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

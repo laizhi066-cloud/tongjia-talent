@@ -1,0 +1,124 @@
+# Nuxt dev/build outputs
+.output
+.vercel
+.data
+.nuxt
+.nitro
+.cache
+/dist
+
+# Node dependencies
+node_modules
+.pnpm-store/
+
+# Logs
+logs
+*.log
+
+# Misc
+.DS_Store
+.fleet
+.idea
+
+# Local env files（敏感凭证严禁入库）
+.env
+.env.*
+.env.local
+.env.*.local
+!.env.example
+
+/app/generated/components.d.ts
+*.bak
+*.bak2
+.npx-cache
+
+# Generated artifacts
+.lint-output.txt
+test_output.mjs
+# E2E 截图、验收产物和历史行业输出（测试输出，勿入库）
+outputs/
+artifacts/
+
+# Nuxt CLI 参数误用时可能生成的根目录缓存 / 旧验证日志位置
+/--host/
+/--port/
+/evidence/
+
+# Backup files
+*.backup
+# PocketBase 备份下载目录（scripts/backup-pb.mjs 产物，含全量数据，绝不入库）
+backups/
+
+# PM2 ecosystem config (contains secrets)
+ecosystem.config.js
+
+# PocketBase binary & data
+pocketbase/pocketbase.exe
+pocketbase/pb_data/
+pocketbase/CHANGELOG.md
+pocketbase/LICENSE.md
+
+# Duplicate AI skill directories
+.agents/
+.claude/skills/ckm-design/
+.claude/skills/ckm-ui-styling/
+
+.playwright-mcp
+pb_migrations
+# PocketBase runtime data (local DB, WAL, logs — never commit)
+pb_data/
+pb_data_*/
+pb_data.backup-*/
+# 本地运行期状态
+.provision-state/
+# 轮换超管密钥时的 PocketBase 备份快照（含库与密钥）
+*.rotbak-*/
+# 每次部署产物报告（机器可读，运行期生成，勿提交）
+deploy-report.json
+cc-connect-config.toml
+pocketbase/pocketbase
+pocketbase/pb_migrations_disabled/
+
+# PM2 运行日志
+logs/
+
+# Python 字节码缓存（技能脚本运行产物，勿入库）
+__pycache__/
+*.pyc
+.codegraph
+.omc/
+
+# 商务/路演文档（非源码，勿入库）：放仓库根的营销/路演 PDF（推广方案-*.pdf、路演-*.pdf 等）
+/*.pdf
+
+# 本地交付包产出（勿入库）
+delivery/
+FOUNDATION-DOCTOR.json
+
+# 远程部署配置（含服务器口令；严禁入库）
+.deploy.env
+.deploy.env.*
+!.deploy.env.example
+.deploy-staging/
+
+# 测试/验收截图与本地 CLI 缓存
+output/
+.playwright-cli/
+
+# 公网发布产物（含本机绝对路径与应用定位 ID，仅本机有效）
+.wbapp_*.genie
+.workbuddy/
+
+# M6 migration dry-run/run artifacts
+backups-m6/
+
+# local demo data/binary
+.local/
+
+# PDF 中文字体（体积约 16MB，按需下载：pnpm fonts:fetch）；许可证 OFL.txt 仍随仓库
+server/assets/fonts/*.otf
+server/assets/fonts/*.ttf
+server/assets/fonts/*.part
+
+# M7 验收截图已移出仓库（改存归档包），避免重新入库
+docs/specs/*/evidence/*.png

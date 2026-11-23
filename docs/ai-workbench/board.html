@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>同佳天赋 · AI 研发工作台</title>
+<style>
+  :root { color-scheme: light dark; --bg:#f6f7fb; --panel:#fff; --line:#e5e7eb; --text:#111827; --muted:#6b7280; --accent:#6d28d9; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0f1117; --panel:#171a22; --line:#2a2f3a; --text:#e5e7eb; --muted:#9ca3af; --accent:#a78bfa; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+  a { color:var(--accent); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .wrap { max-width:1500px; margin:0 auto; padding:28px 20px 48px; }
+  .top { display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end; justify-content:space-between; margin-bottom:18px; }
+  h1 { margin:0; font-size:26px; letter-spacing:-.02em; }
+  .sub { margin:6px 0 0; color:var(--muted); font-size:13px; }
+  .stats { display:flex; gap:10px; flex-wrap:wrap; }
+  .stat { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px 14px; min-width:110px; }
+  .stat b { display:block; font-size:20px; }
+  .stat span { color:var(--muted); font-size:12px; }
+  .links { display:flex; flex-wrap:wrap; gap:8px 16px; padding:14px 16px; margin:18px 0 22px; background:var(--panel); border:1px solid var(--line); border-radius:12px; font-size:13px; }
+  .board { display:grid; grid-template-columns:repeat(5,minmax(240px,1fr)); gap:14px; align-items:start; overflow-x:auto; padding-bottom:4px; }
+  .column { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; min-height:160px; }
+  .column-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .column-head h2 { margin:0; font-size:14px; }
+  .column-head span { color:var(--muted); font-size:12px; }
+  .cards { display:flex; flex-direction:column; gap:10px; }
+  .card { border:1px solid var(--line); border-radius:12px; padding:12px; background:color-mix(in srgb, var(--panel) 88%, var(--bg)); }
+  .card.is-done { opacity:.72; }
+  .card-head { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:8px; }
+  .card-id { color:var(--muted); font:12px ui-monospace,SFMono-Regular,Menlo,monospace; }
+  h3 { margin:0 0 8px; font-size:14px; line-height:1.45; }
+  .tag { border:1px solid var(--tag-color); color:var(--tag-color); border-radius:999px; padding:1px 8px; font-size:11px; }
+  .priority { border-radius:999px; padding:1px 8px; font-size:11px; background:var(--bg); color:var(--muted); }
+  .priority.high { color:#dc2626; }
+  .priority.medium { color:#d97706; }
+  .note { margin:0 0 8px; max-height:150px; overflow:auto; white-space:pre-wrap; word-break:break-word; color:var(--muted); font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .card-foot { display:flex; gap:10px; flex-wrap:wrap; color:var(--muted); font-size:11px; }
+  .done-at { color:#16a34a; }
+  .empty { color:var(--muted); font-size:12px; margin:4px 0; }
+  footer.page { margin-top:26px; color:var(--muted); font-size:12px; }
+  @media (max-width:1100px) { .board { grid-template-columns:repeat(5,280px); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>同佳天赋 · AI 研发工作台</h1>
+      <p class="sub">只读看板快照 · 数据源 <a href="../../.dsh-kanban.json">.dsh-kanban.json</a> · 生成于 2026/11/16 20:01:37</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>9</b><span>全部卡片</span></div>
+      <div class="stat"><b>7</b><span>已完成</span></div>
+      <div class="stat"><b>2</b><span>未完成</span></div>
+    </div>
+  </header>
+
+  <nav class="links">
+    <a href="../specs/M1-rules/spec.md">M1 规则域规格</a>
+    <a href="../specs/M1-rules/acceptance.md">M1 验收与证据</a>
+    <a href="../adr/0001-m1-rule-domain.md">ADR 0001</a>
+    <a href="README.md">工作台说明</a>
+    <a href="../specs/M0/security-remediation.md">P0 密钥止血</a>
+    <a href="../API.md">API 索引</a>
+    <a href="../ARCHITECTURE.md">架构</a>
+    <a href="../STATUS.md">当前状态</a>
+  </nav>
+
+  <main class="board"><section class="column">
+      <header class="column-head"><h2>Backlog</h2><span>2</span></header>
+      <div class="cards"><article class="card ">
+    <header class="card-head"><span class="card-id">k1</span><span class="tag" style="--tag-color:#f97316">P0</span><span class="priority high">P0/P1</span></header>
+    <h3>M0 · 密钥止血：.env / .deploy.env / cc-connect-config.toml</h3>
+    <pre class="note">## 目标
+把已跟踪的密钥文件移出 Git 索引并轮换全部密钥。
+
+## 步骤
+1. 轮换 OSS / SSH / PB 超管 / 微信 / 模型 key。
+2. `git rm --cached .env .deploy.env cc-connect-config.toml`。
+3. 补 `.gitignore`；必要时用 filter-repo 清理历史。
+4. 验证 `git ls-files` 不再包含三项。
+
+## 验收
+- `git ls-files | grep -E &#39;^\.env$|^\.deploy\.env$|cc-connect-config\.toml&#39;` 无输出。
+- 本地应用仍可启动。
+
+详见 `docs/specs/M0/security-remediation.md`。</pre>
+    <footer class="card-foot"><span class="due">截止 2026-11-18</span></footer>
+  </article><article class="card ">
+    <header class="card-head"><span class="card-id">k25</span><span class="tag" style="--tag-color:#8b5cf6">M1</span><span class="priority medium">P2</span></header>
+    <h3>M3 · 方向删除保护真实链路 + selections 字段</h3>
+    <pre class="note">## 来源
+M1 验收 F2：方向「被报告引用不可删」真实链路在 M1 无法验证，因为 `talent_reports` 还没有 `selections` 字段；当前只有纯函数单测覆盖 409。
+
+## 待办
+1. M3 建模 `talent_reports.selections`（或等价引用字段）后，补真实链路 E2E：报告选择方向 → `DELETE /directions/:id` 返回 409，只允许停用。
+2. 补 API 测试：查询报告引用时字段不存在不能被 catch 静默当作“无引用”。
+3. 在 M3 验收表登记证据。
+
+关联：`server/utils/talent-rule.ts` `assertTalentDirectionDeletableInStore`；acceptance §4.1 F2。</pre>
+    <footer class="card-foot"></footer>
+  </article></div>
+    </section><section class="column">
+      <header class="column-head"><h2>Ready</h2><span>0</span></header>
+      <div class="cards"><p class="empty">暂无卡片</p></div>
+    </section><section class="column">
+      <header class="column-head"><h2>In Progress</h2><span>0</span></header>
+      <div class="cards"><p class="empty">暂无卡片</p></div>
+    </section><section class="column">
+      <header class="column-head"><h2>Review</h2><span>0</span></header>
+      <div class="cards"><p class="empty">暂无卡片</p></div>
+    </section><section class="column">
+      <header class="column-head"><h2>Done</h2><span>7</span></header>
+      <div class="cards"><article class="card is-done">
+    <header class="card-head"><span class="card-id">k7</span><span class="tag" style="--tag-color:#0ea5e9">AI</span><span class="priority medium">P2</span></header>
+    <h3>工作台 · 安装 kanban / worktree / session-search + 技能包</h3>
+    <pre class="note">已完成：
+- `@alpacachen/dsh-kanban@1.11.2`（兼容 DSH 0.2.2-rc.1）
+- `@deepseek-ai/dsh-experimental-tool-worktree@0.2.2-rc.1`（重启生效）
+- `@deepseek-ai/dsh-experimental-session-search@0.2.2-rc.1`（重启生效）
+- Agent Teams 内置，启用任务板
+- `.dsh/skills/` 6 个技能
+
+注意：worktree / session-search 需要重启 DSH；kanban 已生效。</pre>
+    <footer class="card-foot"><span class="done-at">完成</span></footer>
+  </article><article class="card is-done">
+    <header class="card-head"><span class="card-id">k2</span><span class="tag" style="--tag-color:#8b5cf6">M1</span><span class="priority high">P0/P1</span></header>
+    <h3>M1 · 规则域规格评审与 ADR</h3>
+    <pre class="note">## 目标
+把 PRD §6.3/6.4/6.5 变成可实现规格，输出 ADR。
+
+## 交付
+- `docs/specs/M1-rules/spec.md`
+- `docs/specs/M1-rules/acceptance.md`
+- `docs/adr/0001-m1-rule-domain.md`
+
+## 验收
+- AC-ADM-03/04/05 每条都有落点。
+- 3 个最高风险 + 验证命令。
+
+Owner: architect（共享任务 task-1）。</pre>
+    <footer class="card-foot"><span class="due">截止 2026-11-18</span><span class="done-at">完成</span></footer>
+  </article><article class="card is-done">
+    <header class="card-head"><span class="card-id">k3</span><span class="tag" style="--tag-color:#8b5cf6">M1</span><span class="priority high">P0/P1</span></header>
+    <h3>M1-A 数据层：集合 / 类型 / schema / 种子</h3>
+    <pre class="note">## 目标
+按 spec v1.1 落地数据层，不写 API/页面。
+
+## 范围
+- 6 个集合：`talent_factor_libraries`、`talent_factors`、`talent_levels`（增量加字段，保留旧字段/旧索引）、`talent_factor_notes`、`talent_directions`、`talent_tiers`
+- `shared/types/`、`scripts/setup.mjs`、`scripts/sync-talent.mjs`（只加不删）
+- `server/utils/talent-rule.ts`、`talent-rule-source.ts`、`talent-rule-csv.ts`
+- `scripts/seed-talent-rule.mjs` + `package.json`
+- `test/talent-rule-domain.test.ts`、`test/talent-rule-csv.test.ts`
+
+## 验收
+- `pnpm typecheck`
+- 定向 vitest
+- 新空目录 `env:setup`
+- 种子计数 4 分级 / 4 档位 / 158 要素 / 632 注解
+- `git diff --check`
+
+Owner: implementer（共享任务 task-2）。</pre>
+    <footer class="card-foot"><span class="due">截止 2026-11-22</span><span class="done-at">完成</span></footer>
+  </article><article class="card is-done">
+    <header class="card-head"><span class="card-id">k11</span><span class="tag" style="--tag-color:#8b5cf6">M1</span><span class="priority high">P0/P1</span></header>
+    <h3>M1-B API 路由与权限审计（31 条）</h3>
+    <pre class="note">## 目标
+按 spec §5 落地 31 条 Nitro 路由；依赖 M1-A 数据层。
+
+## 范围
+- `server/api/admin/talent/{factor-libraries,factors,levels,factor-notes,directions,tiers}/**`
+- Zod、`requirePermission`、`withOperLog`、`success`、分页
+- 导入/导出/模板流
+- 路由级最小测试
+
+## 验收
+- `pnpm typecheck`
+- 路由文件齐全、权限码与菜单种子一致
+- 不改 `app/` 与 `shared/types` 结构
+
+Owner: 待派（共享任务 task-4）。</pre>
+    <footer class="card-foot"><span class="done-at">完成</span></footer>
+  </article><article class="card is-done">
+    <header class="card-head"><span class="card-id">k5</span><span class="tag" style="--tag-color:#8b5cf6">M1</span><span class="priority medium">P2</span></header>
+    <h3>M1 · 导入导出与种子数据</h3>
+    <pre class="note">## 目标
+固定注解 CSV 导入预览/提交、模板下载、导出；文库 xlsx/docx 解析为 158 要素 + 632 注解种子。
+
+## 验收
+- 导入预览能区分通过/失败行，失败行不写入。
+- 模板与导出字段和页面一致。
+- 种子脚本可重复执行且有确认门槛。
+
+依赖：M1 数据层。可用 `office-xlsx` 技能解析 xlsx。</pre>
+    <footer class="card-foot"><span class="due">截止 2026-11-28</span><span class="done-at">完成</span></footer>
+  </article><article class="card is-done">
+    <header class="card-head"><span class="card-id">k6</span><span class="tag" style="--tag-color:#8b5cf6">M1</span><span class="priority high">P0/P1</span></header>
+    <h3>M1 · 验收与证据</h3>
+    <pre class="note">## 目标
+独立 verifier 跑门禁并写证据。
+
+## 命令
+- `pnpm typecheck`
+- 定向 `pnpm vitest run test/talent-*.test.ts`
+- 新库 `env:setup` 烟测
+
+## 输出
+`docs/specs/M1-rules/acceptance.md` 证据表：命令 / 退出码 / 关键输出 / 结论。
+
+Owner: verifier（共享任务 task-3，依赖 task-2）。</pre>
+    <footer class="card-foot"><span class="due">截止 2026-11-29</span><span class="done-at">完成</span></footer>
+  </article><article class="card is-done">
+    <header class="card-head"><span class="card-id">k4</span><span class="tag" style="--tag-color:#8b5cf6">M1</span><span class="priority medium">P2</span></header>
+    <h3>M1-C B 端三页与 composable</h3>
+    <pre class="note">## 目标
+按 spec §6 实现 3 个 B 端页面与档位弹层；依赖 API（task-4）。
+
+## 范围
+- `app/pages/admin/talent/rules/{direction,factor,level}.vue` + components
+- `app/composables/api/useTalentRuleApi.ts`
+- 列表 7/9/7 列、筛选、分页、loading/empty/error
+- 方向配置弹层（158 项 + 逐项分级 + 档位子集/默认档位）
+- 要素只读 + 12 槽位弹层（四段）
+- 分级/注解双页签 + 导入预览
+- 权限按钮
+
+## 验收
+- `pnpm typecheck` / `pnpm lint`
+- 页面可打开，无控制台错误
+- 不改 server/ 与 shared/types
+
+Owner: 待派（共享任务 task-5）。</pre>
+    <footer class="card-foot"><span class="due">截止 2026-11-26</span><span class="done-at">完成</span></footer>
+  </article></div>
+    </section></main>
+
+  <footer class="page">只读快照；修改卡请回到 DSH 侧栏「看板」。重新生成：<code>node scripts/ai/render-board.mjs</code>。</footer>
+</div>
+</body>
+</html>

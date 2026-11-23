@@ -1,0 +1,92 @@
+{
+  "generatedAt": "2026-11-17T09:32:21.839Z",
+  "mode": "dry-run",
+  "target": {
+    "url": "http://127.0.0.1:8103",
+    "dataDir": "/tmp/tj-m6b-vOfH3J",
+    "backup": null,
+    "production": false
+  },
+  "inventory": {
+    "legacyCollections": 19,
+    "legacyCollectionsPresent": [],
+    "legacyCollectionsMissing": [
+      "talent_customers",
+      "talent_customer_bindings",
+      "talent_institutions",
+      "talent_user_institutions",
+      "talent_customer_leads",
+      "talent_customer_authorizations",
+      "talent_cultivation_plans",
+      "talent_member_plan_selections",
+      "talent_report_receipts",
+      "talent_report_publications",
+      "talent_customer_import_batches",
+      "talent_customer_import_rows",
+      "talent_categories",
+      "talent_elements",
+      "talent_cultivation_contents",
+      "talent_content_libraries",
+      "talent_report_templates",
+      "talent_report_template_items",
+      "talent_report_items"
+    ],
+    "legacyRecordsToDelete": 0,
+    "legacyFields": {
+      "talent_levels": [],
+      "talent_report_customerId": [],
+      "talent_levels_index": []
+    },
+    "legacyMenuCounts": {
+      "pages": 0,
+      "actions": 0,
+      "groups": 0,
+      "permissionCodesInMenus": 0
+    },
+    "legacyRoles": [],
+    "legacyRows": {
+      "talent_levels": 0,
+      "talent_reports": 0,
+      "details": {}
+    },
+    "pending": 0
+  },
+  "protectedCollections": [
+    "configs",
+    "depts",
+    "dict_data",
+    "dict_types",
+    "error_logs",
+    "login_logs",
+    "menus",
+    "oper_logs",
+    "posts",
+    "role_depts",
+    "role_menus",
+    "roles",
+    "talent_advice_docs",
+    "talent_advice_versions",
+    "talent_children",
+    "talent_direction_requests",
+    "talent_directions",
+    "talent_factor_libraries",
+    "talent_factor_notes",
+    "talent_factors",
+    "talent_gene_reports",
+    "talent_levels",
+    "talent_parents",
+    "talent_pdf_downloads",
+    "talent_reading_progress",
+    "talent_report_pdfs",
+    "talent_reports",
+    "talent_sync_logs",
+    "talent_tiers",
+    "uploads",
+    "user_posts",
+    "user_roles",
+    "user_sessions",
+    "users"
+  ],
+  "dryRun": true,
+  "note": "dry-run 只读：未删除任何集合 / 记录 / 菜单 / 角色。真实删除需 --backup + --confirm-m6。"
+}

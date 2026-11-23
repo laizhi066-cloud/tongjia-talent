@@ -1,0 +1,7 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "admin-dev", "runtimeExecutable": "pnpm", "runtimeArgs": ["-C", "../..", "dev"], "port": 3000, "autoPort": false },
+    { "name": "cend-h5", "runtimeExecutable": "pnpm", "runtimeArgs": ["dev"], "port": 9000, "autoPort": false }
+  ]
+}

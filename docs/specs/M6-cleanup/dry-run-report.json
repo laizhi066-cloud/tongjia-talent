@@ -1,0 +1,158 @@
+{
+  "generatedAt": "2026-11-17T09:35:50.647Z",
+  "mode": "dry-run",
+  "target": {
+    "url": "http://127.0.0.1:8090",
+    "dataDir": "/tmp/tongjia-demo-pb",
+    "backup": null,
+    "production": false
+  },
+  "inventory": {
+    "legacyCollections": 19,
+    "legacyCollectionsPresent": [
+      {
+        "name": "talent_customers",
+        "records": 0
+      },
+      {
+        "name": "talent_customer_bindings",
+        "records": 0
+      },
+      {
+        "name": "talent_institutions",
+        "records": 0
+      },
+      {
+        "name": "talent_user_institutions",
+        "records": 0
+      },
+      {
+        "name": "talent_customer_leads",
+        "records": 0
+      },
+      {
+        "name": "talent_customer_authorizations",
+        "records": 0
+      },
+      {
+        "name": "talent_cultivation_plans",
+        "records": 0
+      },
+      {
+        "name": "talent_member_plan_selections",
+        "records": 0
+      },
+      {
+        "name": "talent_report_receipts",
+        "records": 0
+      },
+      {
+        "name": "talent_report_publications",
+        "records": 0
+      },
+      {
+        "name": "talent_customer_import_batches",
+        "records": 0
+      },
+      {
+        "name": "talent_customer_import_rows",
+        "records": 0
+      },
+      {
+        "name": "talent_categories",
+        "records": 0
+      },
+      {
+        "name": "talent_elements",
+        "records": 0
+      },
+      {
+        "name": "talent_cultivation_contents",
+        "records": 0
+      },
+      {
+        "name": "talent_content_libraries",
+        "records": 0
+      },
+      {
+        "name": "talent_report_templates",
+        "records": 0
+      },
+      {
+        "name": "talent_report_template_items",
+        "records": 0
+      },
+      {
+        "name": "talent_report_items",
+        "records": 0
+      }
+    ],
+    "legacyCollectionsMissing": [],
+    "legacyRecordsToDelete": 0,
+    "legacyFields": {
+      "talent_levels": [
+        "elementId",
+        "levelCode",
+        "levelName",
+        "annotation"
+      ],
+      "talent_report_customerId": [
+        "customerId"
+      ],
+      "talent_levels_index": [
+        "idx_talent_levels_element_level"
+      ]
+    },
+    "legacyMenuCounts": {
+      "pages": 10,
+      "actions": 24,
+      "groups": 3,
+      "permissionCodesInMenus": 34
+    },
+    "legacyRoles": [],
+    "legacyRows": {
+      "talent_levels": 0,
+      "talent_reports": 0,
+      "details": {}
+    },
+    "pending": 61
+  },
+  "protectedCollections": [
+    "configs",
+    "depts",
+    "dict_data",
+    "dict_types",
+    "error_logs",
+    "login_logs",
+    "menus",
+    "oper_logs",
+    "posts",
+    "role_depts",
+    "role_menus",
+    "roles",
+    "talent_advice_docs",
+    "talent_advice_versions",
+    "talent_children",
+    "talent_direction_requests",
+    "talent_directions",
+    "talent_factor_libraries",
+    "talent_factor_notes",
+    "talent_factors",
+    "talent_gene_reports",
+    "talent_levels",
+    "talent_parents",
+    "talent_pdf_downloads",
+    "talent_reading_progress",
+    "talent_report_pdfs",
+    "talent_reports",
+    "talent_sync_logs",
+    "talent_tiers",
+    "uploads",
+    "user_posts",
+    "user_roles",
+    "user_sessions",
+    "users"
+  ],
+  "dryRun": true,
+  "note": "dry-run 只读：未删除任何集合 / 记录 / 菜单 / 角色。真实删除需 --backup + --confirm-m6。"
+}

@@ -1,0 +1,134 @@
+{
+  "globalStyle": {
+    "navigationBarTitleText": "同佳天赋",
+    "navigationStyle": "custom"
+  },
+  "pages": [
+    // #ifdef H5 || MP-WEIXIN
+    {
+      "path": "pages/home/index",
+      "type": "home",
+      "style": {
+        "navigationStyle": "default",
+        "navigationBarTitleText": "首页",
+        "navigationBarBackgroundColor": "#FAF8F3",
+        "navigationBarTextStyle": "black",
+        "enablePullDownRefresh": true
+      }
+    },
+    // #endif
+    // #ifdef H5 || MP-WEIXIN
+    {
+      "path": "pages/profile/index",
+      "type": "page",
+      "style": {
+        "navigationStyle": "default",
+        "navigationBarTitleText": "我的",
+        "navigationBarBackgroundColor": "#FAF8F3",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    // #endif
+    // #ifdef H5 || MP-WEIXIN
+    {
+      "path": "pages/auth/login",
+      "type": "page"
+    },
+    // #endif
+    // #ifdef H5 || MP-WEIXIN
+    {
+      "path": "pages/auth/locked",
+      "type": "page"
+    },
+    // #endif
+    // #ifdef H5 || MP-WEIXIN
+    {
+      "path": "pages/subject/picker",
+      "type": "page"
+    },
+    // #endif
+    // #ifdef H5 || MP-WEIXIN
+    {
+      "path": "pages/profile/edit",
+      "type": "page"
+    },
+    // #endif
+    // #ifdef H5 || MP-WEIXIN
+    {
+      "path": "pages/agreement/index",
+      "type": "page"
+    },
+    // #endif
+    // #ifdef H5 || MP-WEIXIN
+    {
+      "path": "pages/privacy/index",
+      "type": "page"
+    },
+    // #endif
+    // #ifdef H5 || MP-WEIXIN
+    {
+      "path": "pages/about/about",
+      "type": "page"
+    },
+    // #endif
+    {
+      "path": "pages/advice/detail",
+      "type": "page"
+    },
+    {
+      "path": "pages/advice/index",
+      "type": "page"
+    },
+    {
+      "path": "pages/direction/detail",
+      "type": "page"
+    },
+    {
+      "path": "pages/direction/index",
+      "type": "page",
+      "style": {
+        "navigationStyle": "default",
+        "navigationBarTitleText": "培养方向",
+        "navigationBarBackgroundColor": "#FAF8F3",
+        "navigationBarTextStyle": "black",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/direction/manual",
+      "type": "page"
+    },
+    {
+      "path": "pages/profile/child-form",
+      "type": "page"
+    },
+    {
+      "path": "pages/profile/children",
+      "type": "page"
+    },
+    {
+      "path": "pages/profile/settings",
+      "type": "page"
+    },
+    {
+      "path": "pages/report/factor",
+      "type": "page"
+    },
+    {
+      "path": "pages/report/index",
+      "type": "page",
+      "style": {
+        "navigationStyle": "default",
+        "navigationBarTitleText": "报告",
+        "navigationBarBackgroundColor": "#FAF8F3",
+        "navigationBarTextStyle": "black",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/report/volume",
+      "type": "page"
+    }
+  ],
+  "subPackages": []
+}

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 96" role="img" aria-labelledby="title desc">
+  <title id="title">同佳天赋</title>
+  <desc id="desc">同佳天赋，看见天赋，陪伴成长</desc>
+  <rect width="96" height="96" rx="24" fill="#2F6F5E"/>
+  <path d="M25 30h46M25 48h46M25 66h46M48 30v36" fill="none" stroke="#FAF8F3" stroke-width="7" stroke-linecap="round"/>
+  <path d="M55 24c10 1 17 7 18 17-10 1-17-5-18-17Z" fill="#D9B46B"/>
+  <text x="116" y="48" fill="#2F443C" font-family="system-ui, sans-serif" font-size="34" font-weight="700">同佳天赋</text>
+  <text x="118" y="76" fill="#718079" font-family="system-ui, sans-serif" font-size="16">看见天赋，陪伴成长</text>
+</svg>
