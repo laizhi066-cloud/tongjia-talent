@@ -9,8 +9,11 @@
 </script>
 
 <template>
-  <NuxtLayout>
-    <NuxtPage />
-  </NuxtLayout>
+  <AppErrorBoundary>
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+  </AppErrorBoundary>
+  <AppGlobalLoading />
   <AppConfirm />
 </template>

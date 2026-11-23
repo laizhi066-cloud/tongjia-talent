@@ -117,7 +117,11 @@ provide('toggle-mobile-menu', toggleMobileMenu)
                     <AdminTopbar />
                     <main class="admin-layout__main">
                       <div :key="$route.fullPath" class="admin-page-shell">
-                        <div class="admin-page-content"><slot /></div>
+                        <div class="admin-page-content">
+                          <AppErrorBoundary contained>
+                            <slot />
+                          </AppErrorBoundary>
+                        </div>
                       </div>
                     </main>
                     <footer v-if="versionUpdatedAt" class="admin-footer">版本更新时间：{{ versionUpdatedAt }}</footer>
