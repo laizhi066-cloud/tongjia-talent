@@ -5,6 +5,8 @@
  */
 import { assertMiniProgramBaseUrl, joinApiUrl, selectApiBaseUrl } from './api-url'
 import type { WeixinEnvVersion } from './api-url'
+import { formatNetworkErrorMessage, notifyApiError, notifyNetworkFailure } from './error-notification'
+import { isClientRequestInterceptorInstalled } from './interceptor'
 import { errorSummary, logRequestFailure } from './request-diagnostics'
 import { isAccountDisabledCode, notifySessionEvent } from './session'
 
@@ -21,6 +23,8 @@ export interface RequestOptions {
   hideErrorToast?: boolean
   /** 覆盖默认 15s 超时。 */
   timeoutMs?: number
+  /** 幂等请求自动重试次数覆盖（false 或 0 关闭自动重试；默认最多重试 3 次）。 */
+  retry?: number | false
 }
 
 interface ApiEnvelope<T> {
@@ -161,17 +165,25 @@ function request<T>(method: HttpMethod, path: string, data?: RequestBody, option
     }
     catch (error) {
       logRequestFailure({ stage: 'config', method, url: path }, error)
-      if (!options.hideErrorToast)
-        uni.showToast({ title: errorSummary(error).errMsg, icon: 'none' })
+      if (!options.hideErrorToast) {
+        notifyApiError({
+          kind: 'config',
+          method,
+          url: path,
+          message: errorSummary(error).errMsg,
+        })
+      }
       reject(error)
       return
     }
-    uni.request({
+    const requestParams: UniApp.RequestOptions & { hideErrorToast?: boolean, retry?: number | false } = {
       url: resolved.url,
       method,
       data,
       timeout: options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
       header: token ? { Authorization: `Bearer ${token}` } : {},
+      hideErrorToast: options.hideErrorToast,
+      retry: options.retry,
       success: (response) => {
         const body = response.data as ApiEnvelope<T> | undefined
         const successCode = body && typeof body === 'object' ? body.code : undefined
@@ -199,24 +211,31 @@ function request<T>(method: HttpMethod, path: string, data?: RequestBody, option
           notifySessionEvent('disabled')
         else if (authenticatedRequest && response.statusCode === 401)
           notifySessionEvent('expired')
-        else if (!options.hideErrorToast)
-          uni.showToast({ title: requestError.message, icon: 'none' })
+        else if (!options.hideErrorToast && !isClientRequestInterceptorInstalled())
+          notifyApiError({
+            kind: 'http',
+            statusCode: response.statusCode,
+            method,
+            url: resolved.url,
+            message: requestError.message,
+          })
         reject(requestError)
       },
       fail: (error) => {
         const errMsg = error && typeof error === 'object' && 'errMsg' in error
           ? String(error.errMsg || '')
           : ''
-        const message = '网络连接失败，请稍后重试'
+        const { message } = formatNetworkErrorMessage(error)
         const failure = new ApiRequestError(0, '', '', message)
         logRequestFailure({ stage: 'network', method, url: resolved.url, baseUrlSource: resolved.baseUrlSource, envVersion: resolved.envVersion }, error)
-        if (!options.hideErrorToast)
-          uni.showToast({ title: message, icon: 'none' })
+        if (!options.hideErrorToast && !isClientRequestInterceptorInstalled())
+          notifyNetworkFailure(error, { url: resolved.url, method })
         // 保留原始 errMsg 供诊断日志使用，但不进入面向用户的文案。
         void errMsg
         reject(failure)
       },
-    })
+    }
+    uni.request(requestParams)
   })
 }
 

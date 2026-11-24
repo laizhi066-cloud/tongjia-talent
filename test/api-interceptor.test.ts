@@ -11,7 +11,22 @@ import {
   summarizeResponseData,
 } from '../app/utils/api-logger'
 import {
+  activateErrorToastHandler,
+  allocateErrorToastSelector,
+  formatHttpErrorMessage,
+  formatNetworkErrorMessage,
+  hasErrorToastHandler,
+  isAbortedNetworkError,
+  isSilentErrorToastUrl,
+  notifyApiError,
+  registerErrorToastHandler,
+  resetErrorNotificationState,
+  unregisterErrorToastHandler,
+  type ApiErrorNotification,
+} from '../apps/client/src/http/error-notification'
+import {
   getClientApiMetrics,
+  isClientRequestInterceptorInstalled,
   requestInterceptor,
   resetClientApiInterceptorState,
 } from '../apps/client/src/http/interceptor'
@@ -128,14 +143,120 @@ describe('api-logger utilities', () => {
   })
 })
 
-describe('uni-app client requestInterceptor', () => {
+describe('client error-notification Wot UI Toast bridge', () => {
   afterEach(() => {
-    resetClientApiInterceptorState()
+    resetErrorNotificationState()
     delete (globalThis as Record<string, unknown>).uni
+    vi.useRealTimers()
     vi.restoreAllMocks()
   })
 
-  it('通过 uni.addInterceptor("request") 统一记录 C 端出站与入站耗时，且幂等安装', () => {
+  it('将底层网络与 HTTP 失败映射为可读中文提示并过滤主动取消与静默接口', () => {
+    expect(formatNetworkErrorMessage({ errMsg: 'request:fail timeout' })).toEqual({
+      kind: 'timeout',
+      message: '请求超时，请检查网络后重试',
+    })
+    expect(formatNetworkErrorMessage({ errMsg: 'request:fail net::ERR_INTERNET_DISCONNECTED' })).toEqual({
+      kind: 'network',
+      message: '当前网络不可用，请检查网络连接',
+    })
+    expect(formatNetworkErrorMessage({ errMsg: 'request:fail ssl handshake failed' })).toEqual({
+      kind: 'network',
+      message: '网络安全连接异常，请稍后重试',
+    })
+    expect(formatNetworkErrorMessage({ errMsg: 'request:fail url not in domain list' })).toEqual({
+      kind: 'network',
+      message: '网络连接失败，请稍后重试',
+    })
+
+    expect(isAbortedNetworkError({ errMsg: 'request:fail abort' })).toBe(true)
+    expect(isAbortedNetworkError({ errMsg: 'request:fail timeout' })).toBe(false)
+
+    expect(isSilentErrorToastUrl('/api/client/config/site')).toBe(true)
+    expect(isSilentErrorToastUrl('https://example.com/api/client/client-error')).toBe(true)
+    expect(isSilentErrorToastUrl('/api/client/talent/summary')).toBe(false)
+
+    expect(formatHttpErrorMessage(500, { message: '报告服务繁忙' })).toBe('报告服务繁忙')
+    expect(formatHttpErrorMessage(502, {})).toBe('服务暂时不可用，请稍后重试')
+    expect(formatHttpErrorMessage(429, {})).toBe('操作过于频繁，请稍后重试')
+    expect(formatHttpErrorMessage(500, { message: 'request:fail internal' })).toBe('服务暂时不可用，请稍后重试')
+  })
+
+  it('按页面栈 LIFO 路由到当前活跃页面的 Wot UI Toast 宿主，并支持 onShow 提升与卸载回退', () => {
+    expect(allocateErrorToastSelector()).toBe('portal-api-error-toast-1')
+    expect(allocateErrorToastSelector()).toBe('portal-api-error-toast-2')
+
+    const pageA = vi.fn()
+    const pageB = vi.fn()
+
+    expect(hasErrorToastHandler()).toBe(false)
+    registerErrorToastHandler(pageA)
+    registerErrorToastHandler(pageB)
+    expect(hasErrorToastHandler()).toBe(true)
+
+    notifyApiError({ kind: 'network', message: '网络连接失败，请稍后重试', force: true })
+    expect(pageB).toHaveBeenCalledTimes(1)
+    expect(pageA).not.toHaveBeenCalled()
+
+    // 切回页面 A（onShow 提升为栈顶）
+    activateErrorToastHandler(pageA)
+    notifyApiError({ kind: 'timeout', message: '请求超时，请检查网络后重试', force: true })
+    expect(pageA).toHaveBeenCalledTimes(1)
+    expect(pageB).toHaveBeenCalledTimes(1)
+
+    // 卸载页面 A 后自动回退到页面 B
+    unregisterErrorToastHandler(pageA)
+    notifyApiError({ kind: 'http', message: '服务暂时不可用，请稍后重试', force: true })
+    expect(pageB).toHaveBeenCalledTimes(2)
+
+    unregisterErrorToastHandler(pageB)
+    expect(hasErrorToastHandler()).toBe(false)
+  })
+
+  it('短时间内对相同错误文案去重，无 Wot UI 宿主时安全回退到 uni.showToast', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-11-23T12:00:00.000Z'))
+
+    const wotToastHandler = vi.fn()
+    registerErrorToastHandler(wotToastHandler)
+
+    expect(notifyApiError({ kind: 'network', message: '网络连接失败，请稍后重试' })).toBe(true)
+    expect(notifyApiError({ kind: 'network', message: '网络连接失败，请稍后重试' })).toBe(false)
+    expect(wotToastHandler).toHaveBeenCalledTimes(1)
+
+    // 不同文案立即展示
+    expect(notifyApiError({ kind: 'timeout', message: '请求超时，请检查网络后重试' })).toBe(true)
+    expect(wotToastHandler).toHaveBeenCalledTimes(2)
+
+    // 超过去重窗口后允许再次提示
+    vi.advanceTimersByTime(1600)
+    expect(notifyApiError({ kind: 'timeout', message: '请求超时，请检查网络后重试' })).toBe(true)
+    expect(wotToastHandler).toHaveBeenCalledTimes(3)
+
+    // 注销所有宿主后回退原生 uni.showToast
+    unregisterErrorToastHandler(wotToastHandler)
+    const showToast = vi.fn()
+    ;(globalThis as Record<string, unknown>).uni = { showToast }
+
+    expect(notifyApiError({ kind: 'network', message: '当前网络不可用，请检查网络连接' })).toBe(true)
+    expect(showToast).toHaveBeenCalledWith({
+      title: '当前网络不可用，请检查网络连接',
+      icon: 'none',
+      duration: 2500,
+    })
+  })
+})
+
+describe('uni-app client requestInterceptor', () => {
+  afterEach(() => {
+    resetClientApiInterceptorState()
+    resetErrorNotificationState()
+    delete (globalThis as Record<string, unknown>).uni
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  it('通过 uni.addInterceptor("request") 统一记录出站/入站耗时、触发 Wot UI 错误通知且幂等安装', () => {
     let registeredHandler: { invoke?: (args: Record<string, unknown>) => unknown } | null = null
     const addInterceptor = vi.fn((_name: string, handler: { invoke?: (args: Record<string, unknown>) => unknown }) => {
       registeredHandler = handler
@@ -144,13 +265,17 @@ describe('uni-app client requestInterceptor', () => {
 
     const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {})
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const toastSpy = vi.fn<(payload: ApiErrorNotification) => void>()
+    registerErrorToastHandler(toastSpy)
 
+    expect(isClientRequestInterceptorInstalled()).toBe(false)
     requestInterceptor.install()
     requestInterceptor.install()
+    expect(isClientRequestInterceptorInstalled()).toBe(true)
     expect(addInterceptor).toHaveBeenCalledTimes(1)
     expect(registeredHandler).not.toBeNull()
 
-    // 模拟一次成功请求
+    // 1. 模拟一次成功请求（不弹 Toast）
     const onSuccess = vi.fn()
     const reqArgs: Record<string, unknown> = {
       url: 'https://example.com/api/client/config/site?token=secret',
@@ -160,8 +285,9 @@ describe('uni-app client requestInterceptor', () => {
     registeredHandler!.invoke!(reqArgs)
     ;(reqArgs.success as (res: Record<string, unknown>) => void)({ statusCode: 200, data: { code: 200, data: {} } })
     expect(onSuccess).toHaveBeenCalledTimes(1)
+    expect(toastSpy).not.toHaveBeenCalled()
 
-    // 模拟一次网络失败
+    // 2. 模拟一次网络超时失败（触发 Wot UI Toast）
     const onFail = vi.fn()
     const failArgs: Record<string, unknown> = {
       url: 'https://example.com/api/client/talent/home',
@@ -171,12 +297,105 @@ describe('uni-app client requestInterceptor', () => {
     registeredHandler!.invoke!(failArgs)
     ;(failArgs.fail as (err: unknown) => void)({ errMsg: 'request:fail timeout' })
     expect(onFail).toHaveBeenCalledTimes(1)
+    expect(toastSpy).toHaveBeenCalledTimes(1)
+    expect(toastSpy).toHaveBeenLastCalledWith(expect.objectContaining({
+      kind: 'timeout',
+      message: '请求超时，请检查网络后重试',
+      statusCode: 0,
+      url: 'https://example.com/api/client/talent/home',
+    }))
+
+    // 3. 模拟一次 HTTP 500 失败（触发 Wot UI Toast）
+    const serverErrArgs: Record<string, unknown> = {
+      url: 'https://example.com/api/client/talent/report',
+      method: 'GET',
+    }
+    registeredHandler!.invoke!(serverErrArgs)
+    ;(serverErrArgs.success as (res: Record<string, unknown>) => void)({
+      statusCode: 500,
+      data: { code: 500, message: '报告服务暂不可用' },
+    })
+    expect(toastSpy).toHaveBeenCalledTimes(2)
+    expect(toastSpy).toHaveBeenLastCalledWith(expect.objectContaining({
+      kind: 'http',
+      statusCode: 500,
+      message: '报告服务暂不可用',
+    }))
 
     const metrics = getClientApiMetrics()
-    expect(metrics.total).toBe(2)
-    expect(metrics.failed).toBe(1)
+    expect(metrics.total).toBe(3)
+    expect(metrics.failed).toBe(2)
     expect(metrics.recent[0]!.url).toBe('https://example.com/api/client/config/site')
     expect(infoSpy).toHaveBeenCalled()
     expect(warnSpy).toHaveBeenCalled()
   })
+
+  it('对 hideErrorToast、静默接口、主动取消与会话守卫 401/403 不误弹错误 Toast', () => {
+    let registeredHandler: { invoke?: (args: Record<string, unknown>) => unknown } | null = null
+    const addInterceptor = vi.fn((_name: string, handler: { invoke?: (args: Record<string, unknown>) => unknown }) => {
+      registeredHandler = handler
+    })
+    ;(globalThis as Record<string, unknown>).uni = { addInterceptor }
+    vi.spyOn(console, 'info').mockImplementation(() => {})
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    const toastSpy = vi.fn()
+    registerErrorToastHandler(toastSpy)
+    requestInterceptor.install()
+
+    // 1. hideErrorToast: true 被剥离且不弹窗
+    const hiddenArgs: Record<string, unknown> = {
+      url: 'https://example.com/api/client/talent/summary',
+      method: 'GET',
+      hideErrorToast: true,
+    }
+    registeredHandler!.invoke!(hiddenArgs)
+    expect('hideErrorToast' in hiddenArgs).toBe(false)
+    ;(hiddenArgs.fail as (err: unknown) => void)({ errMsg: 'request:fail' })
+    expect(toastSpy).not.toHaveBeenCalled()
+
+    // 2. 后台站点配置轮询失败不弹窗
+    const siteArgs: Record<string, unknown> = {
+      url: 'https://example.com/api/client/config/site',
+      method: 'GET',
+    }
+    registeredHandler!.invoke!(siteArgs)
+    ;(siteArgs.fail as (err: unknown) => void)({ errMsg: 'request:fail' })
+    expect(toastSpy).not.toHaveBeenCalled()
+
+    // 3. 主动取消请求不弹窗
+    const abortArgs: Record<string, unknown> = {
+      url: 'https://example.com/api/client/talent/advice',
+      method: 'GET',
+    }
+    registeredHandler!.invoke!(abortArgs)
+    ;(abortArgs.fail as (err: unknown) => void)({ errMsg: 'request:fail abort' })
+    expect(toastSpy).not.toHaveBeenCalled()
+
+    // 4. 已认证 401 / 403 ACCOUNT_DISABLED 交给会话守卫，不弹窗
+    const auth401Args: Record<string, unknown> = {
+      url: 'https://example.com/api/client/talent/profile',
+      method: 'GET',
+      header: { Authorization: 'Bearer token-123' },
+    }
+    registeredHandler!.invoke!(auth401Args)
+    ;(auth401Args.success as (res: Record<string, unknown>) => void)({
+      statusCode: 401,
+      data: { code: 401, message: '未登录' },
+    })
+    expect(toastSpy).not.toHaveBeenCalled()
+
+    const auth403Args: Record<string, unknown> = {
+      url: 'https://example.com/api/client/talent/profile',
+      method: 'GET',
+      header: { Authorization: 'Bearer token-123' },
+    }
+    registeredHandler!.invoke!(auth403Args)
+    ;(auth403Args.success as (res: Record<string, unknown>) => void)({
+      statusCode: 403,
+      data: { code: 403, data: { code: 'ACCOUNT_DISABLED' }, message: '账号已停用' },
+    })
+    expect(toastSpy).not.toHaveBeenCalled()
+  })
 })
+

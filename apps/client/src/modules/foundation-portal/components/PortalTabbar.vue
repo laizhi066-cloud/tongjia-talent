@@ -7,6 +7,7 @@
 <script setup lang="ts">
 import { triggerHaptic } from '@/utils/haptics'
 import type { PortalTab } from '../navigation'
+import PortalErrorToast from './PortalErrorToast.vue'
 
 const props = defineProps<{ active: PortalTab }>()
 
@@ -43,38 +44,41 @@ function handleChange(event: TabbarChangeEvent): void {
 </script>
 
 <template>
-  <wd-tabbar
-    :model-value="props.active"
-    placeholder
-    safe-area-inset-bottom
-    fixed
-    custom-class="foundation-portal-tabbar"
-    role="tablist"
-    @change="handleChange"
-  >
-    <wd-tabbar-item
-      v-for="tab in TABS"
-      :key="tab.name"
-      :name="tab.name"
-      :title="tab.title"
-      role="tab"
-      tabindex="0"
-      :aria-selected="props.active === tab.name"
-      :aria-label="tab.title"
-      @keyup.enter="emit('navigate', tab.name)"
-      @keyup.space.prevent="emit('navigate', tab.name)"
+  <view>
+    <wd-tabbar
+      :model-value="props.active"
+      placeholder
+      safe-area-inset-bottom
+      fixed
+      custom-class="foundation-portal-tabbar"
+      role="tablist"
+      @change="handleChange"
     >
-      <template #icon="{ active: isActive }">
-        <view class="tab-icon" :class="{ 'tab-icon--active': isActive }">
-          <wd-icon
-            :name="tab.icon"
-            size="21px"
-            :color="isActive ? 'var(--foundation-primary-deep)' : 'var(--foundation-text-muted)'"
-          />
-        </view>
-      </template>
-    </wd-tabbar-item>
-  </wd-tabbar>
+      <wd-tabbar-item
+        v-for="tab in TABS"
+        :key="tab.name"
+        :name="tab.name"
+        :title="tab.title"
+        role="tab"
+        tabindex="0"
+        :aria-selected="props.active === tab.name"
+        :aria-label="tab.title"
+        @keyup.enter="emit('navigate', tab.name)"
+        @keyup.space.prevent="emit('navigate', tab.name)"
+      >
+        <template #icon="{ active: isActive }">
+          <view class="tab-icon" :class="{ 'tab-icon--active': isActive }">
+            <wd-icon
+              :name="tab.icon"
+              size="21px"
+              :color="isActive ? 'var(--foundation-primary-deep)' : 'var(--foundation-text-muted)'"
+            />
+          </view>
+        </template>
+      </wd-tabbar-item>
+    </wd-tabbar>
+    <PortalErrorToast />
+  </view>
 </template>
 
 <style lang="scss" scoped>

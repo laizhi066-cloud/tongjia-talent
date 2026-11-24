@@ -5,6 +5,8 @@
  * @file src/modules/foundation-portal/components/PortalNavBar.vue
 -->
 <script setup lang="ts">
+import PortalErrorToast from './PortalErrorToast.vue'
+
 const props = withDefaults(defineProps<{
   /** 居中标题（页面名，不带品牌名与副标题）。 */
   title?: string
@@ -16,30 +18,33 @@ const emit = defineEmits<{ back: [] }>()
 </script>
 
 <template>
-  <wd-navbar
-    :title="props.title"
-    fixed
-    placeholder
-    safe-area-inset-top
-    custom-class="foundation-portal-navbar"
-  >
-    <template #left>
-      <view
-        class="nav-back"
-        role="button"
-        tabindex="0"
-        aria-label="返回"
-        @click="emit('back')"
-        @keyup.enter="emit('back')"
-        @keyup.space.prevent="emit('back')"
-      >
-        <wd-icon name="left" size="20px" color="var(--foundation-text)" />
-      </view>
-    </template>
-    <template #right>
-      <slot name="right" />
-    </template>
-  </wd-navbar>
+  <view>
+    <wd-navbar
+      :title="props.title"
+      fixed
+      placeholder
+      safe-area-inset-top
+      custom-class="foundation-portal-navbar"
+    >
+      <template #left>
+        <view
+          class="nav-back"
+          role="button"
+          tabindex="0"
+          aria-label="返回"
+          @click="emit('back')"
+          @keyup.enter="emit('back')"
+          @keyup.space.prevent="emit('back')"
+        >
+          <wd-icon name="left" size="20px" color="var(--foundation-text)" />
+        </view>
+      </template>
+      <template #right>
+        <slot name="right" />
+      </template>
+    </wd-navbar>
+    <PortalErrorToast />
+  </view>
 </template>
 
 <style lang="scss" scoped>
